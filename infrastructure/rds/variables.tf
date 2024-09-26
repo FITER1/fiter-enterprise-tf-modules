@@ -122,3 +122,23 @@ variable "disable_rds_public_access" {
   type        = bool
   default     = false
 }
+
+variable "parameters" {
+  description = "List of Optional Parameters to Add to RDS"
+  type = list(object({
+    name  = string
+    value = string
+  }))
+}
+
+variable "max_allocated_storage" {
+  description = "Specifies the value for Storage Autoscaling"
+  type        = number
+  default     = 0
+}
+
+variable "deletion_protection" {
+  description = "Deletion Protection for Database"
+  type        = bool
+  default     = false
+}

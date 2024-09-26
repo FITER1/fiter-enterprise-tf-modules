@@ -1,6 +1,6 @@
 locals {
-  db_port = "3306"
-  publicly_accessible = var.disable_rds_public_access? false : true
+  db_port             = "3306"
+  publicly_accessible = var.disable_rds_public_access ? false : true
   tags = {
     Name    = var.db_identifier
     OwnedBy = "Terraform"
@@ -49,6 +49,7 @@ module "db" {
   engine_version              = var.engine_version
   instance_class              = var.instance_class
   allocated_storage           = var.db_storage_size
+  max_allocated_storage       = var.max_allocated_storage
   allow_major_version_upgrade = false
 
   db_name                         = var.initial_db_name
@@ -60,6 +61,8 @@ module "db" {
   backup_retention_period = var.backup_retention_period
   maintenance_window      = var.maintenance_window
   backup_window           = var.backup_window
+  parameters              = var.parameters
+  apply_immediately       = true
 
 
   manage_master_user_password = var.manage_master_user_password
@@ -81,7 +84,7 @@ module "db" {
 
   skip_final_snapshot = true
   # Database Deletion Protection change on production
-  deletion_protection = false
+  deletion_protection = var.deletion_protection
   # deletion_protection = var.rds_db_delete_protection
   publicly_accessible = local.publicly_accessible # set to false to enforce it is not publicly accessible
 
