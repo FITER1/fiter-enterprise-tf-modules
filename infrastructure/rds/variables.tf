@@ -128,6 +128,7 @@ variable "rds_subnets" {
   description = "VPC Subnets to Deploy RDS In"
   type        = list(string)
 }
+
 variable "disable_rds_public_access" {
   description = "Turn Off Public RDS Access"
   type        = bool
@@ -245,12 +246,6 @@ variable "snapshot_name" {
   type        = string
   description = "Name of DB to be snapshot"
   default     = null
-}
-
-variable "enable_credential_manager" {
-  type        = bool
-  description = "Enable Credential Manager"
-  default     = true
 }
 
 variable "enable_multi_az" {

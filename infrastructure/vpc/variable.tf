@@ -13,8 +13,6 @@ variable "vpc_cidr" {
   description = "(Required) VPC Cidr"
 }
 
-
-
 variable "common_tags" {
   type        = map(any)
   description = "(Required) Resource Tag"
@@ -38,7 +36,20 @@ variable "enable_karpenter_autoscaler" {
   default     = true
 }
 
-variable "enable_secretmanager_vpc_endpoint" {
+variable "enable_network_endpoints" {
   type        = bool
-  description = "Enable SecretsManager VPC Endpoint if DB is in Private Subnet"
+  description = "Enable VPC Endpoints for the cluster"
+  default     = false
+}
+
+variable "vpc_interface_endpoints" {
+  type        = list(string)
+  description = "List of Services to create VPC interface Endpoints. Used for Private Clusters"
+  default     = []
+}
+
+variable "vpc_gateway_endpoints" {
+  type        = list(string)
+  description = "List of Services to create VPC Gateway Endpoints. Used for Private Clusters"
+  default     = []
 }

@@ -161,9 +161,3 @@ variable "hosted_zones" {
   description = "List of Hosted Zones to be used in External DNS"
   default     = []
 }
-
-variable "tags" {
-  description = "Tags to be applied to all resources"
-  type        = map(any)
-  default = {}
-}

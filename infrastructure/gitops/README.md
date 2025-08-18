@@ -18,13 +18,14 @@ This module sets up ArgoCD on an EKS cluster using Helm.
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 2.7 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | >= 2.7 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | n/a |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
@@ -58,7 +59,7 @@ module "argocd" {
       generate_ssh = false
     }
   }
-  
+
   argocd_root_applications = [
     {
       app_name       = "bootstrap-addons"
@@ -97,14 +98,14 @@ No modules.
 | <a name="input_argocd_domain"></a> [argocd\_domain](#input\_argocd\_domain) | Argocd Host Domain | `string` | n/a | yes |
 | <a name="input_argocd_enabled"></a> [argocd\_enabled](#input\_argocd\_enabled) | Deploy Argocd Helm | `bool` | `false` | no |
 | <a name="input_argocd_ingress_enabled"></a> [argocd\_ingress\_enabled](#input\_argocd\_ingress\_enabled) | Enable Argocd Ingress | `bool` | `false` | no |
-| <a name="input_argocd_repos"></a> [argocd\_repos](#input\_argocd\_repos) | List of Repository containing githuburl, name and type | <pre>map(object({<br>    type         = string<br>    ssh_key      = optional(string, "")<br>    url          = string<br>    generate_ssh = optional(bool, false)<br>    username     = optional(string, "")<br>    password     = optional(string, "")<br>  }))</pre> | `{}` | no |
+| <a name="input_argocd_repos"></a> [argocd\_repos](#input\_argocd\_repos) | List of Repository containing githuburl, name and type | <pre>map(object({<br/>    type         = string<br/>    ssh_key      = optional(string, "")<br/>    url          = string<br/>    generate_ssh = optional(bool, false)<br/>    username     = optional(string, "")<br/>    password     = optional(string, "")<br/>  }))</pre> | `{}` | no |
 | <a name="input_argocd_role_arn"></a> [argocd\_role\_arn](#input\_argocd\_role\_arn) | Argocd Service Account Role Arn | `string` | `""` | no |
 | <a name="input_argocd_root_applications"></a> [argocd\_root\_applications](#input\_argocd\_root\_applications) | List of Root Applications to Deploy | `list(any)` | `[]` | no |
 | <a name="input_argocd_server_min_pdb"></a> [argocd\_server\_min\_pdb](#input\_argocd\_server\_min\_pdb) | minimum number of allowed available pods when pdb is enabled | `number` | `1` | no |
 | <a name="input_argocd_server_pdb_enabled"></a> [argocd\_server\_pdb\_enabled](#input\_argocd\_server\_pdb\_enabled) | enable pod pdb for rapid scaling environments, ensure replicas is over one to enable pdb | `bool` | `false` | no |
 | <a name="input_argocd_server_replicas"></a> [argocd\_server\_replicas](#input\_argocd\_server\_replicas) | number of replicas for argpcd server | `number` | `1` | no |
 | <a name="input_argocd_set_values"></a> [argocd\_set\_values](#input\_argocd\_set\_values) | Arguement for setting Values in Helm Chart that are not passed in the values files | `list(any)` | `[]` | no |
-| <a name="input_argocd_users"></a> [argocd\_users](#input\_argocd\_users) | List of Users to add to Argocd | <pre>map(object({<br>    role = string<br>  }))</pre> | `{}` | no |
+| <a name="input_argocd_users"></a> [argocd\_users](#input\_argocd\_users) | List of Users to add to Argocd | <pre>map(object({<br/>    role = string<br/>  }))</pre> | `{}` | no |
 | <a name="input_argocd_version"></a> [argocd\_version](#input\_argocd\_version) | Version of Argocd Helm to Use | `string` | `"7.6.12"` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region to Where ECR Registry Resides | `string` | n/a | yes |
 | <a name="input_cluster_annotations"></a> [cluster\_annotations](#input\_cluster\_annotations) | Annotations to add to argocd cluster secret | `map(any)` | `{}` | no |
@@ -117,7 +118,7 @@ No modules.
 | <a name="input_ingress_class_name"></a> [ingress\_class\_name](#input\_ingress\_class\_name) | Ingress Class Name for Argocd Ingress | `string` | `"nginx"` | no |
 | <a name="input_ingress_tls_enabled"></a> [ingress\_tls\_enabled](#input\_ingress\_tls\_enabled) | Enable Ingress TLS | `bool` | `true` | no |
 | <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | Namespace to Deploy Argocd | `string` | `"argocd"` | no |
-| <a name="input_projects"></a> [projects](#input\_projects) | List of Projects to Deploy | <pre>list(object({<br>    project_name          = string<br>    project_description   = string<br>    destination_namespace = optional(string, "*")<br>    destination_server    = optional(string, "https://kubernetes.default.svc")<br>  }))</pre> | `[]` | no |
+| <a name="input_projects"></a> [projects](#input\_projects) | List of Projects to Deploy | <pre>list(object({<br/>    project_name          = string<br/>    project_description   = string<br/>    destination_namespace = optional(string, "*")<br/>    destination_server    = optional(string, "https://kubernetes.default.svc")<br/>  }))</pre> | `[]` | no |
 | <a name="input_set_values_argocd_helm"></a> [set\_values\_argocd\_helm](#input\_set\_values\_argocd\_helm) | List of Set Command to Pass to Prometheus Helm Install | `list(any)` | `[]` | no |
 | <a name="input_slack_token"></a> [slack\_token](#input\_slack\_token) | Slack Token to Send Notifications | `string` | `""` | no |
 

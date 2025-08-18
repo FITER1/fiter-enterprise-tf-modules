@@ -39,28 +39,19 @@ module "vpc" {
 
 
 module "endpoints" {
-  count  = var.enable_secretmanager_vpc_endpoint ? 1 : 0
-  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-
-  vpc_id                = module.vpc.vpc_id
-  create_security_group = true
-
-  security_group_name_prefix = "${local.name}-vpc-endpoints-"
+  count                      = var.enable_network_endpoints ? 1 : 0
+  source                     = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version                    = "~> 5.17.0"
+  vpc_id                     = module.vpc.vpc_id
+  create_security_group      = true
+  subnet_ids                 = module.vpc.private_subnets
+  endpoints                  = local.endpoints
+  security_group_name_prefix = "${local.name}-endpoints-"
   security_group_description = "VPC endpoint security group"
   security_group_rules = {
     ingress_https = {
       description = "HTTPS from VPC"
-      cidr_blocks = [module.vpc.vpc_cidr_block]
+      cidr_blocks = [var.vpc_cidr]
     }
-  }
-  subnet_ids = module.vpc.intra_subnets
-
-  endpoints = {
-    secretsmanager = {
-      # interface endpoint
-      service             = "secretsmanager"
-      private_dns_enabled = true
-      tags                = { Name = "secretsmanager-vpc-endpoint" }
-    },
   }
 }

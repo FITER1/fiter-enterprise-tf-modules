@@ -1,4 +1,12 @@
+resource "aws_iam_policy" "eks_logger" {
+  count       = var.enable_eks_log_bucket ? 1 : 0
+  name_prefix = "${var.eks_cluster_name}-loki"
+  description = "EKS Bucket Logging policy for cluster ${var.eks_cluster_name}"
+  policy      = data.aws_iam_policy_document.eks_logger[0].json
+}
+
 data "aws_iam_policy_document" "eks_logger" {
+  count = var.enable_eks_log_bucket ? 1 : 0
   statement {
     sid    = "AllowBucketLogging"
     effect = "Allow"

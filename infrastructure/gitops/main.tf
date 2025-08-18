@@ -75,13 +75,7 @@ resource "helm_release" "argocd" {
     templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)
   ]
 
-  dynamic "set" {
-    for_each = { for set in local.setvalues : set.name => set }
-    content {
-      name  = set.key
-      value = set.value.value
-    }
-  }
+  set = var.set_values_argocd_helm
 }
 
 resource "helm_release" "argoapps" {
@@ -138,12 +132,11 @@ resource "kubernetes_secret_v1" "argocd_clients" {
   for_each = var.argocd_clients
 
   metadata {
-    name        = "${each.key}-cluster-secret"
-    namespace   = var.k8s_namespace
-    annotations = each.value.cluster_annotations
-    labels = merge(each.value.cluster_labels, {
+    name      = "${each.key}-cluster-secret"
+    namespace = var.k8s_namespace
+    labels = {
       "argocd.argoproj.io/secret-type" = "cluster"
-    })
+    }
   }
 
   data = {

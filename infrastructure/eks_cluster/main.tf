@@ -76,10 +76,12 @@ module "eks" {
     kube-proxy = {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                 = true
     }
     vpc-cni = {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                 = true
       configuration_values = jsonencode({
         env = {
           ENABLE_PREFIX_DELEGATION = "true"
@@ -89,6 +91,7 @@ module "eks" {
     aws-ebs-csi-driver = {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                 = true
       service_account_role_arn    = module.aws_ebs_csi_iam_service_account.iam_role_arn
     }
   }
@@ -133,9 +136,11 @@ module "eks" {
       taints       = lookup(value, "taints", [])
       subnet_ids   = lookup(value, "subnet_ids", var.subnets)
 
-      instance_types          = value["instance_types"]
-      capacity_type           = value["capacity_type"]
-      pre_bootstrap_user_data = lookup(value, "pre_bootstrap_user_data", "")
+      instance_types                 = value["instance_types"]
+      capacity_type                  = value["capacity_type"]
+      pre_bootstrap_user_data        = lookup(value, "pre_bootstrap_user_data", "")
+      use_latest_ami_release_version = lookup(value, "use_latest_ami_release_version", false)
+      tags                           = lookup(value, "tags", {})
     }
   }
 
@@ -159,18 +164,6 @@ module "eks" {
   tags = merge(var.common_tags, {
     "karpenter.sh/discovery" = local.cluster_name
   })
-}
-
-# add support for fully private clusters
-module "endpoints" {
-  count                 = var.cluster_endpoint_public_access ? 0 : 1
-  source                = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version               = "5.17.0"
-  vpc_id                = var.vpc_id
-  create_security_group = false
-  security_group_ids    = [module.eks.node_security_group_id, module.eks.cluster_security_group_id]
-  subnet_ids            = var.subnets
-  endpoints             = local.endpoints
 }
 
 module "ebs_kms_key" {
@@ -244,7 +237,7 @@ resource "aws_iam_policy" "aws_ebs_csi" {
 
 module "aws_ebs_csi_iam_service_account" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-  version                       = "5.52.2"
+  version                       = "~> 5.59.0"
   create_role                   = true
   role_name                     = "${local.prefix}-aws-ebs-csi"
   provider_url                  = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
@@ -254,7 +247,7 @@ module "aws_ebs_csi_iam_service_account" {
 
 module "eks_log_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "3.15.2"
+  version = "~>4.2.0"
 
   bucket                   = local.eks_log_bucket
   acl                      = "private"
@@ -282,16 +275,18 @@ module "eks_log_bucket" {
 
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "20.29.0"
+  version = "~> 20.37.0"
 
-  cluster_name           = module.eks.cluster_name
-  irsa_oidc_provider_arn = module.eks.oidc_provider_arn
-  create_node_iam_role   = false
-  enable_v1_permissions  = true
-  enable_irsa            = true
-  create_access_entry    = false
-  node_iam_role_arn      = element(local.node_group_arns, 0)
-  tags                   = var.common_tags
+  cluster_name            = module.eks.cluster_name
+  irsa_oidc_provider_arn  = module.eks.oidc_provider_arn
+  enable_v1_permissions   = true
+  enable_irsa             = true
+  create_instance_profile = true
+  create_access_entry     = false
+  node_iam_role_additional_policies = merge({
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }, var.additional_cluster_policies)
+  tags = var.common_tags
 }
 
 # POST EKS INSTALL
