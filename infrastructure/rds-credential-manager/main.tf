@@ -7,38 +7,6 @@
  */
 data "aws_caller_identity" "current" {}
 
-locals {
-  lambda_layer = {
-    mysql    = "pymysql.zip"
-    postgres = "psycopg2.zip"
-  }
-  secret_path = "${var.environment}/${var.database_identifier}"
-
-  defaults = {
-    package_type = "Zip"
-    handler      = ""
-    runtime      = ""
-    source_path  = null
-    layers       = null
-    image_uri    = null
-  }
-
-  lambda_type = {
-    zip = {
-      package_type = "Zip"
-      handler      = "index.lambda_handler"
-      runtime      = "python3.9"
-      source_path  = "${path.cwd}/lambdas/${var.engine}"
-      layers       = [module.pymysql_layer.lambda_layer_arn]
-    }
-    image = {
-      package_type = "Image"
-      image_uri    = var.docker_image
-    }
-  }
-}
-
-
 module "credential_manager" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "7.20.2"
@@ -132,8 +100,10 @@ resource "aws_lambda_invocation" "postgres_init" {
     "USERNAME"    = "ignore",
     "DATABASES"   = [],
     "DB_INIT"     = "True"
+    "DB_OWNER"    = ""
     "ACCESS_TYPE" = "readonly"
   })
+  depends_on = [module.endpoints]
 }
 
 # Invoke to create users
@@ -146,7 +116,40 @@ resource "aws_lambda_invocation" "db_service" {
   input = jsonencode({
     "USERNAME"    = each.value.user,
     "DATABASES"   = each.value.databases,
+    "DB_OWNER"    = each.value.db_owner,
     "DB_INIT"     = "False"
     "ACCESS_TYPE" = each.value.access_type
   })
+
+  depends_on = [
+    module.endpoints,
+    aws_lambda_invocation.postgres_init
+  ]
+}
+
+module "endpoints" {
+  count   = var.enable_secretmanager_vpc_endpoint ? 1 : 0
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "~> 5.17.0"
+
+  vpc_id                = var.vpc_id
+  create_security_group = true
+
+  security_group_name_prefix = "${var.name}-vpc-endpoints-"
+  security_group_description = "VPC endpoint security group"
+  security_group_rules = {
+    ingress_https = {
+      description = "HTTPS from VPC"
+      cidr_blocks = [var.vpc_cidr]
+    }
+  }
+  subnet_ids = var.subnets
+
+  endpoints = {
+    secretsmanager = {
+      service             = "secretsmanager"
+      private_dns_enabled = true
+      tags                = { Name = "secretsmanager-vpc-endpoint" }
+    },
+  }
 }

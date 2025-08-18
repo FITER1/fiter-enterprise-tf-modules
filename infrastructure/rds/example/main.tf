@@ -22,7 +22,9 @@ module "rds" {
   db_storage_size                        = 100                                    # Storage size in GB
   cloudwatch_log_group_retention_in_days = 14                                     # Retention period for CloudWatch logs
   create_cloudwatch_log_group            = true                                   # Whether to create CloudWatch log group
-  encrypt_db_storage                     = true                                   # Encrypt DB storage
+  encrypyt_db_storage                    = true                                   # Encrypt DB storage
+  region                                 = "eu-west-1"                            # AWS region]
+  environment                            = "dev"                                  # Environment
 }
 
 # RDS From Snapshot
@@ -39,6 +41,7 @@ module "rds-snapshot" {
   intra_subnets             = ["subnet-33333333", "subnet-44444444"]
   db_service_users          = ["service-user-1", "service-user-2"]
   disable_rds_public_access = true
+  # ...
 }
 
 # RDS With Read Replica
@@ -56,4 +59,5 @@ module "rds-replicas" {
   db_service_users          = ["service-user-1", "service-user-2"]
   disable_rds_public_access = true
   allowed_cidrs             = ["192.168.1.0/24", "10.0.0.0/16"]
+  # ...
 }

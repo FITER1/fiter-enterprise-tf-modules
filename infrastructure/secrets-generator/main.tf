@@ -11,12 +11,13 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  secret_readers = var.secret_reader_arns == [] ? ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"] : var.secret_reader_arns
+  secret_readers = length(var.secret_reader_arns) == 0 ? ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"] : var.secret_reader_arns
 }
 
 module "secrets_manager" {
   for_each = var.secrets
   source   = "terraform-aws-modules/secrets-manager/aws"
+  version  = "~> 1.3.0"
 
   # Secret
   name                    = "kubernetes/${var.clustername}/${each.key}"

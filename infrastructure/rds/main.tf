@@ -54,7 +54,7 @@ resource "aws_vpc_security_group_egress_rule" "egress" {
 
 module "db" {
   source                      = "terraform-aws-modules/rds/aws"
-  version                     = "6.10.0"
+  version                     = "~> 6.12.0"
   identifier                  = var.db_identifier
   engine                      = var.engine
   engine_version              = var.engine_version
@@ -75,7 +75,7 @@ module "db" {
   backup_window           = var.backup_window
 
   snapshot_identifier         = var.snapshot_name
-  manage_master_user_password = true
+  manage_master_user_password = var.manage_master_user_password
   monitoring_interval         = var.monitoring_interval
   monitoring_role_name        = "${var.db_identifier}RDSMonitoringRole"
   create_monitoring_role      = var.create_monitoring_role

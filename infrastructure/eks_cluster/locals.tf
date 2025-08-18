@@ -2,29 +2,14 @@ locals {
   eks_log_bucket = "${var.eks_logging_bucketname}-${local.cluster_name}-${local.account_id}"
   account_id     = data.aws_caller_identity.current.id
   prefix         = format("%s-%s", var.customer, var.environment)
-  cluster_name   = local.prefix
+  cluster_name   = "${var.customer}-${var.environment}"
   args           = var.assume_role_arn == "" ? ["eks", "get-token", "--cluster-name", local.cluster_name] : ["eks", "get-token", "--cluster-name", local.cluster_name, "--role-arn", "${var.assume_role_arn}"]
-  interface_endpoints = { for endpoint in var.vpc_interface_endpoints : endpoint => {
-    service             = endpoint
-    service_type        = "Interface"
-    private_dns_enabled = true
-    tags = {
-      Name = "${endpoint}-vpc-endpoint"
-    }
-    }
-  }
 
-  gateway_endpoint = { for endpoint in var.vpc_gateway_endpoints : endpoint => {
-    service      = endpoint
-    service_type = "Gateway"
-    tags = {
-      Name = "${endpoint}-vpc-endpoint"
-    }
-    route_table_ids = var.route_table_ids
-    }
-  }
-
-  endpoints = merge(local.interface_endpoints, local.gateway_endpoint)
+  kube_deploy_user = var.helm_deploy ? [{
+    rolearn  = "arn:aws:iam::${local.account_id}:role/${local.cluster_name}-ghdeploy-role-kube-deploy"
+    username = "helm-ci-deployer"
+    groups   = ["ci-user"]
+  }] : []
 
   node_security_group_rules = {
     ingress_self_all = {
@@ -57,4 +42,39 @@ locals {
   node_group_arns = [
     for key, node in module.eks.eks_managed_node_groups : node.iam_role_arn
   ]
+
+  node_roles_arns = flatten([
+    module.karpenter.node_iam_role_arn,
+    local.node_group_arns
+  ])
+
+  node_roles = [
+    for roles in local.node_roles_arns : {
+      rolearn  = roles
+      username = "system:node:{{EC2PrivateDNSName}}"
+      groups = [
+        "system:bootstrappers",
+        "system:nodes",
+      ]
+    }
+  ]
+
+  auth_roles = [
+    for role in var.aws_auth_roles : {
+      rolearn  = role
+      username = role
+      groups   = ["system:masters"]
+    }
+  ]
+
+  eks_auth_users = [
+    for user in var.aws_auth_users :
+    {
+      userarn  = format("arn:aws:iam::%s:user/%s", local.account_id, user)
+      username = user
+      groups   = ["system:masters"]
+    }
+  ]
+
+  eks_auth_roles = concat(local.auth_roles, local.node_roles, local.kube_deploy_user)
 }

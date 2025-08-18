@@ -64,6 +64,7 @@ variable "db_service_users" {
   type = list(object({
     user        = string
     access_type = string
+    db_owner    = string
     databases   = list(string)
   }))
   description = "service user to create for application"
@@ -105,7 +106,7 @@ variable "docker_image" {
 }
 
 variable "function_source" {
-  type = string
+  type        = string
   description = "The source type for the Lambda function (zip or image)"
   validation {
     condition     = var.function_source == "zip" || var.function_source == "image"
@@ -123,4 +124,20 @@ variable "function_code_path" {
   description = "Path to the Lambda function code"
   type        = string
   default     = "lambdas"
+}
+
+variable "enable_secretmanager_vpc_endpoint" {
+  type        = bool
+  description = "Enable VPC Endpoint for Secrets Manager"
+  default     = false
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID where the RDS instance will be deployed"
+}
+
+variable "vpc_cidr" {
+  type        = string
+  description = "CIDR block of the VPC"
 }

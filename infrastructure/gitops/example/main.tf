@@ -5,7 +5,7 @@ module "argocd" {
   argocd_domain               = "appset.dev.example.io"
   argocd_server_replicas      = 1
   argocd_server_pdb_enabled   = true
-  argocd_server_min_pdb       = 1
+  argocd_server_min_pdb       = 2
   aws_region                  = "us-west-2"
   eks_cluster_name            = "example-cluster"
   enable_argocd_notifications = false
@@ -19,7 +19,7 @@ module "argocd" {
       ssh_key      = ""
       username     = "argocd-token"
       password     = "gh-token-password"
-      url          = "https://github.com/seyio/argocd-apps.git"
+      url          = "http://github.com/seyio/argocd-apps.git"
       generate_ssh = false
     }
   }
@@ -27,9 +27,8 @@ module "argocd" {
   argocd_root_applications = [
     {
       app_name       = "bootstrap-addons"
-      repository_url = "https://github.com/seyio/argocd-apps.git"
+      repository_url = "http://github.com/seyio/argocd-apps.git"
       repo_path      = "argocd_gitops/bootstrap/addons"
       branch         = "main"
-    }
-  ]
+  }]
 }

@@ -42,7 +42,7 @@ module "eks_iam_roles" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_eks_iam_role"></a> [eks\_iam\_role](#module\_eks\_iam\_role) | terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc | 5.52.2 |
+| <a name="module_eks_iam_role"></a> [eks\_iam\_role](#module\_eks\_iam\_role) | terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc | ~> 5.59.0 |
 
 ## Resources
 

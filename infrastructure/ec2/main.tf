@@ -10,13 +10,26 @@
 
 data "aws_ami" "amazon_linux" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["137112412989"] # Amazon
 
   filter {
-    name = "name"
-    values = [
-      "amzn-ami-*",
-    ]
+    name   = "name"
+    values = [var.default_ami_filter]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 }
 
@@ -27,7 +40,7 @@ resource "random_shuffle" "subnet" {
 
 module "key_pair" {
   source             = "terraform-aws-modules/key-pair/aws"
-  version            = "2.0.3"
+  version            = "~> 2.1.0"
   create             = var.create_key_pair
   key_name           = local.key_name
   create_private_key = true
@@ -36,17 +49,18 @@ module "key_pair" {
 
 resource "aws_ssm_parameter" "aws_key_pair" {
   count = var.create_key_pair ? 1 : 0
-
-  name  = "/fineract/ec2/key_pair/${local.key_name}"
+  name  = "/${var.environment}/ec2/key_pair/${local.key_name}"
   type  = "SecureString"
   value = module.key_pair.private_key_pem
   tags  = local.common_tags
 }
 
 module "ec2" {
-  source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "~> 5.5.0"
-
+  source                      = "terraform-aws-modules/ec2-instance/aws"
+  version                     = "~> 5.8.0"
+  user_data_base64            = var.user_data_base64
+  user_data                   = var.user_data
+  user_data_replace_on_change = var.user_data_replace_on_change
   ami                         = var.ami_image_id != "" ? var.ami_image_id : data.aws_ami.amazon_linux.id
   instance_type               = var.instance_type
   name                        = var.instance_name
@@ -54,6 +68,7 @@ module "ec2" {
   vpc_security_group_ids      = local.security_group_ids
   subnet_id                   = local.subnet_id
   ignore_ami_changes          = true
+  create_eip                  = var.create_eip
   create_iam_instance_profile = true
   iam_role_name               = var.instance_name
   iam_role_description        = "IAM role for ${var.instance_name} EC2 instance"
@@ -79,6 +94,8 @@ module "ec2" {
     create = var.create_timeout
     delete = var.delete_timeout
   }
+
+  volume_tags = local.common_tags
 }
 
 resource "aws_security_group" "this" {
@@ -87,25 +104,27 @@ resource "aws_security_group" "this" {
   name        = "ec2-${var.instance_name}-sg"
   description = "EC2 ${var.instance_name} security group"
   vpc_id      = var.vpc_id
+  tags        = local.common_tags
+}
 
-  dynamic "ingress" {
-    for_each = toset(var.sg_ingress_ports)
+resource "aws_security_group_rule" "ingress" {
+  for_each          = var.create_security_group ? var.sg_ingress_rules : {}
+  type              = "ingress"
+  from_port         = each.value.port
+  to_port           = each.value.port
+  protocol          = each.value.protocol
+  security_group_id = aws_security_group.this[0].id
+  cidr_blocks       = each.value.cidr
+}
 
-    content {
-      from_port   = ingress.value
-      to_port     = ingress.value
-      protocol    = var.sg_ingress_protocol
-      cidr_blocks = local.security_group_cidr
-    }
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = local.common_tags
+resource "aws_security_group_rule" "egress" {
+  count             = var.create_security_group ? 1 : 0
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.this[0].id
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_volume_attachment" "data" {
@@ -119,8 +138,9 @@ resource "aws_volume_attachment" "data" {
 resource "aws_ebs_volume" "data" {
   for_each = { for volume in var.additional_ebs_volumes : volume.name => volume }
 
-  availability_zone = local.map_subnets[local.subnet_id]["subnet_az"]
-  size              = each.value.size
-  type              = each.value.type
+  availability_zone = module.ec2.availability_zone
+  size              = each.value.volume_size
+  type              = each.value.volume_type
   tags              = local.common_tags
+  encrypted         = each.value.encrypted
 }

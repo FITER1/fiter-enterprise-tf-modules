@@ -13,7 +13,7 @@ variable "cluster_version" {
   description = "AWS EKS Cluster Version"
   default     = "1.25"
 }
-# variable "cluster_encryption_key_arn" {} # aws_kms_key.k8s_secrets.arn. can be reused?
+
 variable "common_tags" {
   type        = map(any)
   description = "(Required) Resource Tag"
@@ -40,12 +40,13 @@ variable "subnets" {
 
 variable "aws_auth_users" {
   type        = list(any)
-  description = "(Deprecated) List of User maps to add to the aws-auth configmap"
+  description = "List of User maps to add to the aws-auth configmap"
+  default = []
 }
 
 variable "aws_auth_roles" {
   type        = list(any)
-  description = "(Deprecated) List of role maps to add to the aws-auth configmap"
+  description = "List of role maps to add to the aws-auth configmap"
   default     = []
 }
 
@@ -77,18 +78,6 @@ variable "assume_role_arn" {
 variable "route_table_ids" {
   type        = list(string)
   description = "Route Table ID for the s3 gateway endpoint if privake only cluster is used"
-  default     = []
-}
-
-variable "vpc_interface_endpoints" {
-  type        = list(string)
-  description = "List of Services to create VPC interface Endpoints. Used for Private Clusters"
-  default     = []
-}
-
-variable "vpc_gateway_endpoints" {
-  type        = list(string)
-  description = "List of Services to create VPC Gateway Endpoints. Used for Private Clusters"
   default     = []
 }
 
@@ -125,7 +114,7 @@ variable "log_bucket_lifecycle_rules" {
   default = {
     logs = {
       path            = "loki_logs/"
-      expiration_days = 30
+      expiration_days = 90
     }
   }
 }
