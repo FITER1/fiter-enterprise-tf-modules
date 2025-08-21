@@ -1,16 +1,15 @@
 module "vpc" {
-  source                            = "git::git@bitbucket.org:revvingadmin/terraform-modules.git//infrastructure//vpc?ref=1.2.0"
-  environment                       = "dev"
-  customer                          = "revving"
-  vpc_cidr                          = "10.0.0.0/16"
-  common_tags                       = { "name" = "example" }
-  enable_secretmanager_vpc_endpoint = false
+  source      = "../../vpc"
+  environment = "dev"
+  customer    = "fiter"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { "name" = "example" }
 }
 
 module "eks" {
   source          = "../"
   environment     = "dev"
-  customer        = "revving"
+  customer        = "fiter"
   cluster_version = "1.29"
   vpc_id          = module.vpc.vpc_id
   subnets         = module.vpc.private_subnets

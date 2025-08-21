@@ -81,8 +81,8 @@ module "pymysql_layer" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "6.0.0"
 
-  create                 = false #var.function_source == "zip"
-  create_layer           = false #var.function_source == "zip"
+  create                 = var.function_source == "zip"
+  create_layer           = var.function_source == "zip"
   layer_name             = "${var.name}-pysql-layer"
   description            = "PythonMySQL Dependency needed for Lambda Function"
   compatible_runtimes    = ["python3.11"]

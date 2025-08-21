@@ -30,8 +30,7 @@ data "aws_iam_policy_document" "ssm_permission" {
 
 module "eventbridge_scheduler_role" {
   count  = length(var.cron_schedules) > 0 ? 1 : 0
-  source = "../generic_iam_role"
-  # source = "git::git@bitbucket.org:revvingadmin/terraform-modules.git//infrastructure//generic_iam_role?ref=1.4.0"
+  source = "git::git@github.com:FITER1/fiter-enterprise-tf-modules.git//infrastructure//generic_iam_role?ref=1.2.0"
 
   create_policy         = true
   principal_type        = "Service"
