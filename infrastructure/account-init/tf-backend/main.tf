@@ -28,6 +28,7 @@ resource "aws_s3_bucket" "tf_bucket" {
 resource "aws_s3_bucket_acl" "tf_bucket" {
   bucket = aws_s3_bucket.tf_bucket.id
   acl    = "private"
+  depends_on = [ aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership ]
 }
 
 # Resource to avoid error "AccessControlListNotSupported: The bucket does not allow ACLs"
