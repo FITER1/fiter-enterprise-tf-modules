@@ -141,3 +141,9 @@ variable "vpc_cidr" {
   type        = string
   description = "CIDR block of the VPC"
 }
+
+variable "database_port" {
+  type        = number
+  description = "Port number for the database"
+  default     = 5432
+}

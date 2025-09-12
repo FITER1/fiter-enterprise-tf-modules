@@ -34,6 +34,7 @@ module "credential_manager" {
     DB_HOST           = var.database_host
     ADMIN_DB_NAME     = var.database_admin_db
     DB_IDENTIFIER     = var.database_identifier
+    DB_PORT           = var.database_port
     SECRET_PATH       = local.secret_path
   }
 

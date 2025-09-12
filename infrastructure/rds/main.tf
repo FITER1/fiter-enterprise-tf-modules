@@ -14,11 +14,6 @@
  *
 */
 
-
-locals {
-  secret_path               = "${var.environment}/${var.db_identifier}"
-}
-
 data "aws_caller_identity" "current" {}
 
 resource "aws_security_group" "service" {

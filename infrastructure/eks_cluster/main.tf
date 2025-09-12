@@ -50,12 +50,14 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
       configuration_values = var.enable_private_zone ? jsonencode({
         corefile = <<-EOT
-            .:53 {
+          .:53 {
               errors
-              health
+              health {
+                  lameduck 5s
+                }
+              ready
               kubernetes cluster.local in-addr.arpa ip6.arpa {
                 pods insecure
-                upstream
                 fallthrough in-addr.arpa ip6.arpa
               }
               prometheus :9153
@@ -64,12 +66,12 @@ module "eks" {
               loop
               reload
               loadbalance
-            }
             ${var.private_zone_host_name}:53 {
               errors
               cache 30
-              forward . /etc/resolv.conf
-            }
+              forward . 169.254.169.253
+            }  
+          }
           EOT
       }) : null
     }

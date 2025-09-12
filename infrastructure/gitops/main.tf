@@ -37,16 +37,7 @@ locals {
     }
   ]
 
-  client_projects = [
-    for key, cluster in var.argocd_clients : {
-      project_name          = "${key}"
-      project_description   = "${cluster.name} Cluster Project"
-      destination_namespace = "*"
-      destination_server    = "${cluster.server}"
-    }
-  ]
-
-  projects = concat(local.main_project, var.projects, local.client_projects)
+  projects = concat(local.main_project, var.projects)
 
   eks_helm_map = {
     argocd_ingress_enabled      = var.argocd_ingress_enabled
@@ -123,26 +114,6 @@ resource "kubernetes_secret_v1" "default_cluster" {
       }
     }
     EOF
-  }
-
-  depends_on = [helm_release.argocd]
-}
-
-resource "kubernetes_secret_v1" "argocd_clients" {
-  for_each = var.argocd_clients
-
-  metadata {
-    name      = "${each.key}-cluster-secret"
-    namespace = var.k8s_namespace
-    labels = {
-      "argocd.argoproj.io/secret-type" = "cluster"
-    }
-  }
-
-  data = {
-    name   = each.key
-    server = each.value.server
-    config = each.value.config
   }
 
   depends_on = [helm_release.argocd]
