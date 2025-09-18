@@ -61,6 +61,8 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   namespace        = var.k8s_namespace
   create_namespace = true
+  wait             = false
+  wait_for_jobs    = false
 
   values = [
     templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)
