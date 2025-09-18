@@ -76,6 +76,8 @@ resource "helm_release" "argoapps" {
   chart            = "argocd-apps"
   namespace        = var.k8s_namespace
   create_namespace = true
+  wait             = false
+  wait_for_jobs    = false
 
   values = [
     templatefile("${path.module}/files/argocd-apps.yaml.tmpl", {
