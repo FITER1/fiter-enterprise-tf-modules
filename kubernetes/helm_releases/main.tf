@@ -7,7 +7,7 @@ locals {
     vpc_id                  = var.vpc_id
     cluster_name            = var.eks_cluster_name
     account_id              = data.aws_caller_identity.current.account_id
-    external_secret_sa_role = var.service_account_arns["external-secret"]
+    external_secret_sa_role = var.external_secret_enabled ? var.service_account_arns["external-secret"] : null
   }
 
   helm_releases = {
@@ -40,17 +40,14 @@ locals {
         cert_manager_resources : var.cert_manager_resources
       })]
     },
-    nginx-ingress = {
+    ingress-nginx = {
       enabled          = var.nginx_ingress_enabled
       repository       = "https://kubernetes.github.io/ingress-nginx"
       chart            = "ingress-nginx"
       version          = var.nginx_ingress_version
       namespace        = "kube-system"
       create_namespace = true
-      values = [templatefile("${path.module}/values/nginx-ingress.yaml", {
-        nginx_ingress_resources : var.nginx_ingress_resources,
-        aws_load_balancer_scheme : var.nginx_ingress_lb_scheme
-      })]
+      values           = [file("${path.module}/values/nginx-ingress.yaml")]
     },
     alb-ingress = {
       enabled          = var.alb_ingress_enabled
@@ -81,7 +78,7 @@ locals {
       version          = var.mysql_operator_version
       namespace        = var.mysql_operator_namespace
       create_namespace = true
-      values = []
+      values           = []
     },
     postgres-operator = {
       enabled          = var.postgres_operator_enabled
@@ -220,7 +217,7 @@ data "kubernetes_resource" "ingress" {
   kind        = "Service"
 
   metadata {
-    name      = "nginx-ingress-ingress-nginx-controller"
+    name      = "ingress-nginx-controller"
     namespace = "kube-system"
   }
   depends_on = [helm_release.this]
@@ -228,23 +225,4 @@ data "kubernetes_resource" "ingress" {
 
 output "nginx_ingress_hostname" {
   value = try(data.kubernetes_resource.ingress[0].object.status.loadBalancer.ingress[0].hostname, null)
-}
-
-
-data "aws_route53_zone" "private_zone" {
-  count        = var.enable_private_zone ? 1 : 0
-  name         = var.private_zone_host_name
-  private_zone = true
-  vpc_id       = var.vpc_id
-}
-
-resource "aws_route53_record" "cname_records" {
-  count   = var.enable_private_zone ? length(var.cname_records) : 0
-  zone_id = data.aws_route53_zone.private_zone[0].zone_id
-  name    = var.cname_records[count.index].value
-  type    = "CNAME"
-  ttl     = var.cname_records[count.index].ttl
-
-  records    = [try(data.kubernetes_resource.ingress[0].object.status.loadBalancer.ingress[0].hostname, null)]
-  depends_on = [helm_release.this]
 }

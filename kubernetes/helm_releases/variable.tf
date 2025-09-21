@@ -11,7 +11,7 @@ variable "cluster_autoscaler_version" {
 }
 
 variable "metric_server_enabled" {
-  default     = true
+  default     = false
   description = "Enable Cluster Metrics Server"
   type        = bool
 }
@@ -47,7 +47,7 @@ variable "nginx_ingress_enabled" {
 }
 
 variable "nginx_ingress_version" {
-  default     = "4.11.2"
+  default     = "4.13.0"
   description = "Helm Chart Version for Nginx Ingress Controller"
   type        = string
 }
@@ -95,6 +95,7 @@ variable "external_secret_version" {
 variable "service_account_arns" {
   description = "Map of Arns from Service Accounts Module"
   type        = map(string)
+  default     = {}
 }
 
 variable "external_aws_secret_parameter_store_enabled" {
