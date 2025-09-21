@@ -23,16 +23,6 @@ output "node_security_group_id" {
   description = "value of the node security group ID"
 }
 
-output "eks_log_bucket_arn" {
-  value       = module.eks_log_bucket.s3_bucket_arn
-  description = "value of the EKS log bucket ARN"
-}
-
-output "eks_log_bucket_name" {
-  value       = module.eks_log_bucket.s3_bucket_id
-  description = "value of the EKS log bucket name"
-}
-
 output "karpenter_role_arn" {
   value       = module.karpenter.iam_role_arn
   description = "value of the Karpenter IAM role ARN"

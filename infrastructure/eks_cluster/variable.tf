@@ -63,12 +63,6 @@ variable "cluster_endpoint_public_access_cidrs" {
 }
 
 
-variable "eks_logging_bucketname" {
-  type        = string
-  default     = "eks-logs"
-  description = "AWS Bucket Name to Send EKS Logs"
-}
-
 variable "assume_role_arn" {
   type        = string
   description = "Terraform Role to Assume"
@@ -103,20 +97,6 @@ variable "private_zone_host_name" {
   type        = string
   default     = "fineract.internal"
 
-}
-
-variable "log_bucket_lifecycle_rules" {
-  type = map(object({
-    path            = string
-    expiration_days = number
-  }))
-  description = "Number of days to retain the logs in the bucket"
-  default = {
-    logs = {
-      path            = "loki_logs/"
-      expiration_days = 90
-    }
-  }
 }
 
 variable "eks_access_entries" {

@@ -1,5 +1,4 @@
 locals {
-  eks_log_bucket = "${var.eks_logging_bucketname}-${local.cluster_name}-${local.account_id}"
   account_id     = data.aws_caller_identity.current.id
   prefix         = format("%s-%s", var.customer, var.environment)
   cluster_name   = "${var.customer}-${var.environment}"

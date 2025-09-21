@@ -247,34 +247,6 @@ module "aws_ebs_csi_iam_service_account" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
-module "eks_log_bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~>4.2.0"
-
-  bucket                   = local.eks_log_bucket
-  acl                      = "private"
-  force_destroy            = true
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
-
-  versioning = {
-    enabled = true
-  }
-  lifecycle_rule = [for key, property in var.log_bucket_lifecycle_rules : {
-    id      = key
-    enabled = true
-    filter = {
-      prefix = property.path
-    }
-    expiration = {
-      days                         = property.expiration_days
-      expired_object_delete_marker = lookup(property, "expired_object_delete_marker", false)
-    }
-    }
-  ]
-}
-
-
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "~> 20.37.0"
@@ -284,7 +256,7 @@ module "karpenter" {
   enable_v1_permissions   = true
   enable_irsa             = true
   create_instance_profile = true
-  create_access_entry     = false
+  create_access_entry     = true
   node_iam_role_additional_policies = merge({
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }, var.additional_cluster_policies)
