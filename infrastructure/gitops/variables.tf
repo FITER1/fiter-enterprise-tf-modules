@@ -42,12 +42,6 @@ variable "argocd_root_applications" {
   default     = []
 }
 
-variable "argocd_ingress_enabled" {
-  description = "Enable Argocd Ingress"
-  type        = bool
-  default     = false
-}
-
 variable "argocd_enabled" {
   description = "Deploy Argocd Helm"
   default     = false
@@ -86,28 +80,10 @@ variable "eks_cluster_name" {
   description = "Name of Kubernetes Cluster. Note. change to Cluster"
 }
 
-variable "ingress_class_name" {
-  type        = string
-  description = "Ingress Class Name for Argocd Ingress"
-  default     = "nginx"
-}
-
-variable "ingress_cert_issuer" {
-  type        = string
-  description = "Cluster Issuer for Cert Manager to be used. Allows for custom"
-  default     = "letsencrypt-prod-issuer"
-}
-
 variable "set_values_argocd_helm" {
   type        = list(any)
   description = "List of Set Command to Pass to Prometheus Helm Install"
   default     = []
-}
-
-variable "ingress_tls_enabled" {
-  type        = bool
-  description = "Enable Ingress TLS"
-  default     = true
 }
 
 variable "enable_argocd_notifications" {
@@ -121,12 +97,6 @@ variable "slack_token" {
   description = "Slack Token to Send Notifications"
   default     = ""
   sensitive   = true
-}
-
-variable "argo_ingress_class" {
-  type        = string
-  description = "Argocd Ingress Class to Use"
-  default     = "nginx"
 }
 
 variable "argocd_server_replicas" {
@@ -195,4 +165,25 @@ variable "argocd_users" {
   }))
   description = "List of Users to add to Argocd"
   default     = {}
+}
+
+variable "ingress_configurations" {
+  type = object({
+    enabled     = optional(bool, false)
+    class       = optional(string, "nginx")
+    tls         = optional(bool, false)
+    annotations = optional(map(string), {})
+    controller  = optional(string, "generic")
+  })
+  description = "Configurations to add for argocd ingress"
+  default     = {}
+  validation {
+    condition = contains(["generic", "aws"], var.ingress_configurations.controller)
+    error_message = "controller must be either 'generic' or 'aws'."
+  }
+
+  validation {
+    condition = contains(["nginx", "alb"], var.ingress_configurations.class)
+    error_message = "class must be either 'nginx' or 'alb'."
+  }
 }

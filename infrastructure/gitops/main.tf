@@ -40,7 +40,11 @@ locals {
   projects = concat(local.main_project, var.projects)
 
   eks_helm_map = {
-    argocd_ingress_enabled      = var.argocd_ingress_enabled
+    argocd_ingress_enabled      = var.ingress_configurations.enabled
+    ingress_class_name          = var.ingress_configurations.class
+    ingress_tls_enabled         = var.ingress_configurations.tls
+    ingress_annotations         = var.ingress_configurations.annotations
+    ingress_controller          = var.ingress_configurations.controller
     argocd_domain               = var.argocd_domain
     enable_argocd_notifications = var.enable_argocd_notifications
     argocd_server_replicas      = var.argocd_server_replicas

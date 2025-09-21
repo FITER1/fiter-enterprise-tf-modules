@@ -13,6 +13,28 @@ server:
     - --insecure
   logLevel: debug
 
+  ingress:
+    # -- Enable an ingress resource for the Argo CD server
+    enabled: ${argocd_ingress_enabled}
+    ingressClassName: ${ingress_class_name}
+    # -- Additional ingress labels
+    hostname: ${argocd_domain}
+    tls: ${ingress_tls_enabled}
+
+    controller: aws
+    annotations:
+    %{~ if length(keys(ingress_annotations)) == 0 ~}
+      {}
+    %{~ else ~}
+    %{~ for k, v in ingress_annotations ~}
+      ${k}: ${v}
+    %{~ endfor ~}
+    %{~ endif ~}
+    %{~ if ingress_class_name == "alb" ~}
+    aws:
+      backendProtocolVersion: GRPC
+      serviceType: ClusterIP
+    %{~ endif ~}
 # only supports slack. Add More integrations as clients come up
 notifications:
   enabled: ${enable_argocd_notifications}
