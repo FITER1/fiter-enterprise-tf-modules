@@ -1,4 +1,5 @@
 locals {
+  eks_log_bucket = "${var.eks_logging_bucketname}-${var.eks_cluster_name}-${data.aws_caller_identity.current.account_id}"
   eks_roles = {
     aws_alb = {
       role_name           = "${var.eks_cluster_name}-alb-controller"

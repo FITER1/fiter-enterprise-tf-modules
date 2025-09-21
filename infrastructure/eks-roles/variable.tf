@@ -97,12 +97,6 @@ variable "eks_cluster_name" {
   description = "(Required) EKS Cluster Name"
 }
 
-variable "eks_log_bucket" {
-  type        = string
-  description = "Bucket ARN to send EKS Logs"
-  default     = ""
-}
-
 variable "enable_eks_log_bucket" {
   type        = bool
   description = "Enabled EKS Bucket Log Role"
@@ -160,4 +154,24 @@ variable "hosted_zones" {
   type        = list(string)
   description = "List of Hosted Zones to be used in External DNS"
   default     = []
+}
+
+variable "eks_logging_bucketname" {
+  type        = string
+  default     = "eks-logs"
+  description = "AWS Bucket Name to Send EKS Logs"
+}
+
+variable "log_bucket_lifecycle_rules" {
+  type = map(object({
+    path            = string
+    expiration_days = number
+  }))
+  description = "Number of days to retain the logs in the bucket"
+  default = {
+    logs = {
+      path            = "loki_logs/"
+      expiration_days = 90
+    }
+  }
 }

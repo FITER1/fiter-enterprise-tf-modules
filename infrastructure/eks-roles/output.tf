@@ -11,3 +11,7 @@ output "cluster_metadata" {
     }
   ]...)
 }
+
+output "eks_log_bucket_name" {
+  value = try(module.eks_log_bucket[0].s3_bucket_id, "")
+}

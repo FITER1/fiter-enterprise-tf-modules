@@ -1,3 +1,32 @@
+module "eks_log_bucket" {
+  count   = var.enable_eks_log_bucket ? 1 : 0
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~>4.2.0"
+
+  bucket                   = local.eks_log_bucket
+  acl                      = "private"
+  force_destroy            = true
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled = true
+  }
+  lifecycle_rule = [for key, property in var.log_bucket_lifecycle_rules : {
+    id      = key
+    enabled = true
+    filter = {
+      prefix = property.path
+    }
+    expiration = {
+      days                         = property.expiration_days
+      expired_object_delete_marker = lookup(property, "expired_object_delete_marker", false)
+    }
+    }
+  ]
+}
+
+
 resource "aws_iam_policy" "eks_logger" {
   count       = var.enable_eks_log_bucket ? 1 : 0
   name_prefix = "${var.eks_cluster_name}-loki"
@@ -19,8 +48,8 @@ data "aws_iam_policy_document" "eks_logger" {
     ]
 
     resources = [
-      var.eks_log_bucket,
-      "${var.eks_log_bucket}/*"
+      module.eks_log_bucket[0].s3_bucket_arn,
+      "${module.eks_log_bucket[0].s3_bucket_arn}/*"
     ]
   }
 }
