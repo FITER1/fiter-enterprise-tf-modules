@@ -25,9 +25,9 @@ resource "aws_s3_bucket" "tf_bucket" {
 }
 
 resource "aws_s3_bucket_acl" "tf_bucket" {
-  bucket = aws_s3_bucket.tf_bucket.id
-  acl    = "private"
-  depends_on = [ aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership ]
+  bucket     = aws_s3_bucket.tf_bucket.id
+  acl        = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership]
 }
 
 # Resource to avoid error "AccessControlListNotSupported: The bucket does not allow ACLs"
@@ -84,6 +84,7 @@ data "aws_iam_policy_document" "tf_bucket" {
 }
 
 resource "aws_s3_bucket_policy" "tf_bucket" {
+  count  = length(var.tf_backend_iam_principals) > 0 ? 1 : 0
   bucket = aws_s3_bucket.tf_bucket.id
   policy = data.aws_iam_policy_document.tf_bucket.json
 
