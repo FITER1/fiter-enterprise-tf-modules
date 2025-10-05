@@ -131,6 +131,7 @@ module "eks" {
   eks_managed_node_groups = {
     for key, value in var.node_groups_attributes :
     key => {
+      ami_type     = value["ami_type"]
       min_size     = value["min_size"]
       max_size     = value["max_size"]
       desired_size = value["desired_size"]
