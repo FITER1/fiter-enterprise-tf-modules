@@ -1,34 +1,39 @@
-apiVersion: opentelemetry.io/v1alpha1
+apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: oltp-collector
   namespace: ${k8s_namespace}
 spec:
-  config: |
+  config:
     receivers:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
-    processors:
-      memory_limiter:
-        check_interval: 1s
-        limit_percentage: 75
-        spike_limit_percentage: 15
-      batch:
-        send_batch_size: 10000
-        timeout: 10s
-
+            endpoint: 0.0.0.0:4318
     exporters:
-      debug:
+      debug: null
       otlp:
         endpoint: ${collector_exporter_endpoint}:4317
         tls:
           insecure: true
-
+    processors:
+      batch:
+        send_batch_size: 10000
+        timeout: 10s
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
     service:
       pipelines:
         traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch]
-          exporters: [debug, otlp]
+          exporters:
+            - debug
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          receivers:
+            - otlp
