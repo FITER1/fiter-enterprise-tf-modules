@@ -55,6 +55,7 @@ locals {
     enable_ui_exec              = var.enable_ui_exec
     devusers                    = local.dev_users
     admin_users                 = local.admin_users
+    crossplane_enabled          = var.crossplane_enabled
   }
 }
 

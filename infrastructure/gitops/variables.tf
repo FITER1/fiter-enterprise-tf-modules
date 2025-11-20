@@ -187,3 +187,9 @@ variable "ingress_configurations" {
     error_message = "class must be either 'nginx' or 'alb'."
   }
 }
+
+variable "crossplane_enabled" {
+  type        = bool
+  description = "Enable Crossplane related Configuration"
+  default     = false
+}
