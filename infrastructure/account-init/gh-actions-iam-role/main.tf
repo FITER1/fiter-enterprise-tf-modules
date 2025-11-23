@@ -15,6 +15,7 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "terraform_role" {
+  count       = var.create_admin_role ? 1 : 0
   name        = "${var.deployment_role_name}-terraform"
   description = "Terraform Deployment Role"
 
@@ -38,11 +39,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "terraform_policy_attachment" {
-  role       = aws_iam_role.terraform_role.name
-  policy_arn = aws_iam_policy.terraform_policy.arn
+  count      = var.create_admin_role ? 1 : 0
+  role       = aws_iam_role.terraform_role[0].name
+  policy_arn = aws_iam_policy.terraform_policy[0].arn
 }
 
 resource "aws_iam_policy" "terraform_policy" {
+  count       = var.create_admin_role ? 1 : 0
   name_prefix = "tf-deployment-policy-"
   policy = jsonencode({
     Version = "2012-10-17"
