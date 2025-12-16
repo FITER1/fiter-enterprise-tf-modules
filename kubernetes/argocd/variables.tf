@@ -147,7 +147,7 @@ variable "argoapps_version" {
 }
 
 variable "alb_ingress_scheme" {
-  type = string
+  type        = string
   description = "Annotation scheme to use if ALB ingress is used. Internet-facing or internal"
-  default = "internet-facing"
+  default     = "internet-facing"
 }

@@ -50,9 +50,9 @@ resource "helm_release" "argocd" {
   version    = var.argocd_version
   chart      = "argo-cd"
   namespace  = var.k8s_namespace
-  values     = [
-        templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)
-      ]
+  values = [
+    templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)
+  ]
 
   create_namespace = true
   dynamic "set" {
@@ -70,14 +70,14 @@ resource "helm_release" "argoapps" {
   version    = var.argoapps_version
   chart      = "argocd-apps"
   namespace  = var.k8s_namespace
-  values     = [
+  values = [
     templatefile("${path.module}/files/argocd-apps.yaml.tmpl", {
       applications = var.argocd_root_applications
       projects     = local.projects
     })
   ]
   create_namespace = true
-  depends_on = [ helm_release.argocd ]
+  depends_on       = [helm_release.argocd]
 }
 
 # ------------------------------------------------------------------------------------------------

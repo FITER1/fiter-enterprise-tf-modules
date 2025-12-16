@@ -4,7 +4,7 @@ terraform {
       source = "hashicorp/helm"
     }
     kubectl = {
-      source  = "gavinbunney/kubectl"
+      source = "gavinbunney/kubectl"
     }
   }
 }
