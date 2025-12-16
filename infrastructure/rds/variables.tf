@@ -252,3 +252,9 @@ variable "enable_multi_az" {
   description = "Enable Multi-AZ Cluster"
   default     = false
 }
+
+variable "tags" {
+  default     = {}
+  description = "Expose Tags field"
+  type        = map(any)
+}

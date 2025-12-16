@@ -253,9 +253,9 @@ variable "tempo_svc" {
 }
 
 variable "alb_ingress_scheme" {
-  type = string
+  type        = string
   description = "Annotation scheme to use if ALB ingress is used. Internet-facing or internal"
-  default = "internet-facing"
+  default     = "internet-facing"
 }
 
 variable "blackbox_helm_version" {
@@ -265,13 +265,13 @@ variable "blackbox_helm_version" {
 }
 
 variable "enable_blackbox_exporter" {
-  default = false
-  type = bool
+  default     = false
+  type        = bool
   description = "Enable Black Box Exporter"
 }
 
 variable "blackbox_resources" {
-  type = map(any)
+  type        = map(any)
   description = "Resources for BlackBox Exporter"
   default = {
     cpu_request = "50m"
@@ -282,6 +282,6 @@ variable "blackbox_resources" {
 
 variable "blackbox_targets" {
   description = "Targets for BlackBox Exporter"
-  default = {}
-  type = map(any)
+  default     = {}
+  type        = map(any)
 }

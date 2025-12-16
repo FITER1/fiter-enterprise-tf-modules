@@ -55,7 +55,7 @@ resource "helm_release" "prometheus_operator" {
 
   values = [templatefile(
     "${path.module}/values/prometheus.yaml", {
-      grafana_enabled: var.grafana_enabled
+      grafana_enabled : var.grafana_enabled
       SLACK_ENABLED : var.slack_enabled,
       SLACK_HOOK_URL : local.slack_hook_url,
       SLACK_CHANNEL : local.slack_channel,
@@ -76,14 +76,14 @@ resource "helm_release" "prometheus_operator" {
       enable_grafana_storage : var.enable_grafana_storage,
       alb_ingress_scheme : var.alb_ingress_scheme
       blackbox_targets : var.blackbox_targets
-      enable_blackbox_exporter: var.enable_blackbox_exporter
+      enable_blackbox_exporter : var.enable_blackbox_exporter
   })]
   depends_on = [kubernetes_secret.grafana_password]
 }
 
 variable "grafana_enabled" {
-  default = false
-  type = bool
+  default     = false
+  type        = bool
   description = "Optional. User can enable Grafana"
 }
 

@@ -178,12 +178,12 @@ variable "ingress_configurations" {
   description = "Configurations to add for argocd ingress"
   default     = {}
   validation {
-    condition = contains(["generic", "aws"], var.ingress_configurations.controller)
+    condition     = contains(["generic", "aws"], var.ingress_configurations.controller)
     error_message = "controller must be either 'generic' or 'aws'."
   }
 
   validation {
-    condition = contains(["nginx", "alb"], var.ingress_configurations.class)
+    condition     = contains(["nginx", "alb"], var.ingress_configurations.class)
     error_message = "class must be either 'nginx' or 'alb'."
   }
 }
