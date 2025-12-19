@@ -129,13 +129,13 @@ resource "aws_iam_role" "ci_roles" {
   for_each              = var.ci_pipelines_roles
   force_detach_policies = true
   name                  = "${var.deployment_role_name}-${each.key}"
-  assume_role_policy    = templatefile("${path.cwd}/${each.value.trustjson}", try(each.value.envvars, {}))
+  assume_role_policy    = templatefile("${path.root}/${each.value.trustjson}", try(each.value.envvars, {}))
 }
 
 resource "aws_iam_policy" "ci_policies" {
   for_each = var.ci_pipelines_roles
   name     = "${var.deployment_role_name}-${each.key}-policy"
-  policy   = templatefile("${path.cwd}/${each.value.permissionfile}", try(each.value.envvars, {}))
+  policy   = templatefile("${path.root}/${each.value.permissionfile}", try(each.value.envvars, {}))
 }
 
 resource "aws_iam_role_policy_attachment" "ci_policies_attachment" {

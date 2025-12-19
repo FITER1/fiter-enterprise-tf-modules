@@ -55,6 +55,6 @@ resource "kubectl_manifest" "karpenter_nodepool" {
 
 resource "kubectl_manifest" "karpenter_custom_nodepool" {
   count      = var.use_custom_nodepool ? 1 : 0
-  yaml_body  = file("${path.cwd}/${var.custom_nodepool_path}")
+  yaml_body  = file("${path.root}/${var.custom_nodepool_path}")
   depends_on = [kubectl_manifest.karpenter_nodeclass]
 }

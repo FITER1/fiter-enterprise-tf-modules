@@ -19,7 +19,7 @@ locals {
       package_type = "Zip"
       handler      = "index.lambda_handler"
       runtime      = "python3.9"
-      source_path  = "${path.cwd}/lambdas/${var.engine}"
+      source_path  = "${path.root}/lambdas/${var.engine}"
       layers       = [module.pymysql_layer.lambda_layer_arn]
     }
     image = {
