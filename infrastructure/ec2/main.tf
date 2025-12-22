@@ -40,7 +40,7 @@ resource "random_shuffle" "subnet" {
 
 module "key_pair" {
   source             = "terraform-aws-modules/key-pair/aws"
-  version            = "~> 2.1.0"
+  version            = "2.1.0"
   create             = var.create_key_pair
   key_name           = local.key_name
   create_private_key = true
@@ -67,7 +67,7 @@ module "ec2" {
   key_name                    = local.key_name
   vpc_security_group_ids      = local.security_group_ids
   subnet_id                   = local.subnet_id
-  ignore_ami_changes          = true
+  ignore_ami_changes          = var.ignore_ami_changes
   create_eip                  = var.create_eip
   create_iam_instance_profile = true
   iam_role_name               = var.instance_name
@@ -79,6 +79,7 @@ module "ec2" {
   disable_api_termination     = var.disable_api_termination
   associate_public_ip_address = var.associate_public_ip_address
   hibernation                 = var.enable_hibernation_support
+  metadata_options            = var.metadata_options
 
   tags = local.common_tags
 

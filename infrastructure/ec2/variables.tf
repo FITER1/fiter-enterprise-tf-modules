@@ -171,3 +171,19 @@ variable "create_eip" {
   description = "Whether to create an Elastic IP for the instance"
   default     = false
 }
+
+variable "metadata_options" {
+  description = "Metadata options for the EC2 instance"
+  type        = map(string)
+  default = {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+}
+
+variable "ignore_ami_changes" {
+  type        = bool
+  description = "Whether to ignore changes to the AMI ID"
+  default     = true
+}
