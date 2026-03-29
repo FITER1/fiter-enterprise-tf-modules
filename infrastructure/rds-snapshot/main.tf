@@ -53,13 +53,13 @@ resource "aws_vpc_security_group_egress_rule" "egress" {
 
 module "db" {
   source                      = "terraform-aws-modules/rds/aws"
-  version                     = "~> 6.12.0"
+  version                     = "~> 7.0"
   identifier                  = var.db_identifier
   engine                      = var.engine
   engine_version              = var.engine_version
   instance_class              = var.instance_class
   allocated_storage           = var.db_storage_size
-  allow_major_version_upgrade = false
+  allow_major_version_upgrade = var.allow_major_version_upgrade
 
   db_name                         = var.initial_db_name
   username                        = var.username

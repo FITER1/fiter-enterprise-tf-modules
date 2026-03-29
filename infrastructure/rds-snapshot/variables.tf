@@ -217,3 +217,9 @@ variable "region" {
   type        = string
   default     = "eu-west-2"
 }
+
+variable "allow_major_version_upgrade" {
+  type        = bool
+  description = "Allow major version upgrade for the RDS instance"
+  default     = false
+}
