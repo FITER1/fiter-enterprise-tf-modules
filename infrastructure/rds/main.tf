@@ -49,13 +49,13 @@ resource "aws_vpc_security_group_egress_rule" "egress" {
 
 module "db" {
   source                      = "terraform-aws-modules/rds/aws"
-  version                     = "~> 6.12.0"
+  version                     = "~> 7.0"
   identifier                  = var.db_identifier
   engine                      = var.engine
   engine_version              = var.engine_version
   instance_class              = var.instance_class
   allocated_storage           = var.db_storage_size
-  allow_major_version_upgrade = false
+  allow_major_version_upgrade = var.allow_major_version_upgrade
 
   db_name                                = var.initial_db_name
   username                               = var.username
@@ -90,10 +90,12 @@ module "db" {
   subnet_ids             = var.rds_subnets
 
   # DB parameter group
-  family = var.rds_family
+  family                       = var.rds_family
+  parameter_group_skip_destroy = var.parameter_group_skip_destroy
 
   # DB option group
-  major_engine_version = var.major_engine_version
+  major_engine_version      = var.major_engine_version
+  option_group_skip_destroy = var.option_group_skip_destroy
 
   skip_final_snapshot = true
   # Database Deletion Protection change on production

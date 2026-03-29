@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "ssm_permission" {
 }
 
 module "eventbridge_scheduler_role" {
-  source = "git::https://github.com/FITER1/fiter-enterprise-tf-modules.git//infrastructure//generic_iam_role?ref=v1.2.0"
+  source = "../generic_iam_role"
 
   create_policy         = true
   principal_type        = "Service"
@@ -45,7 +45,7 @@ module "eventbridge_scaler" {
   }
 
   source  = "terraform-aws-modules/eventbridge/aws"
-  version = "~> 3.17.0"
+  version = "~> 4.3.0"
 
   append_schedule_postfix = false
   create_bus              = false
