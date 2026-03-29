@@ -1,34 +1,37 @@
+# ArgoCD deployed via Helm with a single Git repository and one root application.
+
 module "argocd" {
   source = "../"
 
-  argocd_role_arn             = "arn:::iam::123456789012:role/argocd-role"
-  argocd_domain               = "appset.dev.example.io"
-  argocd_server_replicas      = 1
-  argocd_server_pdb_enabled   = true
-  argocd_server_min_pdb       = 2
-  aws_region                  = "us-west-2"
-  eks_cluster_name            = "example-cluster"
-  enable_argocd_notifications = false
-  environment                 = "dev"
-  cluster_annotations         = {}
-  cluster_labels              = { enable_cert_manager = true }
+  argocd_enabled   = true
+  eks_cluster_name = "example-customer-dev"  # change to your EKS cluster name
+  aws_region       = "eu-west-1"             # change to your AWS region
+  argocd_domain    = "argocd.dev.example.io" # change to your ArgoCD hostname
+
+  argocd_version         = "7.6.12"
+  argocd_server_replicas = 1
+
+  environment = "dev"
 
   argocd_repos = {
-    repo1 = {
-      type         = "git"
-      ssh_key      = ""
-      username     = "argocd-token"
-      password     = "gh-token-password"
-      url          = "http://github.com/seyio/argocd-apps.git"
-      generate_ssh = false
+    apps = {
+      type     = "git"
+      url      = "https://github.com/example-org/argocd-apps.git" # change to your GitOps repo
+      username = "argocd-token"                                   # GitHub username or token name
+      password = "gh-token-here"                                  # use a secret or variable in real usage
     }
   }
 
   argocd_root_applications = [
     {
       app_name       = "bootstrap-addons"
-      repository_url = "http://github.com/seyio/argocd-apps.git"
-      repo_path      = "argocd_gitops/bootstrap/addons"
+      repository_url = "https://github.com/example-org/argocd-apps.git"
+      repo_path      = "bootstrap/addons"
       branch         = "main"
-  }]
+    }
+  ]
+
+  # Notifications (optional)
+  enable_argocd_notifications = false
+  # slack_token               = var.slack_token
 }

@@ -1,4 +1,4 @@
-<!-- DO NOT UPDATE: Document auto-generated! -->
+<!-- BEGIN_TF_DOCS -->
 # AWS RDS Terraform Module
 
 This module provisions an RDS instance from a snapshot and manages related resources such as security groups, ingress, and egress rules.
@@ -13,53 +13,57 @@ This module provisions an RDS instance from a snapshot and manages related resou
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
-module "develop" {
-  source                      = "../"
-  vpc_id                      = "vpc-12345678"                         # Replace with your actual VPC ID
-  vpc_cidr_block              = "10.0.0.0/16"                          # VPC CIDR block
-  rds_subnets                 = ["subnet-12345678", "subnet-87654321"] # List of RDS subnets (private)
-  instance_class              = "db.t3.small"
-  intra_subnets               = ["subnet-23456789", "subnet-98765432"] # List of intra subnets
-  disable_rds_public_access   = true
-  engine_version              = "13"
-  major_engine_version        = "13"
-  engine                      = "postgres"
-  rds_family                  = "postgres13"
-  cloudwatch_logs_names       = ["postgresql", "upgrade"] # specific to postgres
-  storage_type                = "io1"
-  iops                        = 1000
-  db_identifier               = "develop"
-  db_storage_size             = "100"
-  snapshot_db_name            = "example_snapshot"
-  username                    = "example_username"
-  initial_db_name             = null
-  manage_master_user_password = false
-  db_port                     = 5432
-  encrypyt_db_storage         = true
-  rds_db_delete_protection    = false
-  apply_immediately           = false
+# RDS instance provisioned from a snapshot, with Lambda-based credential rotation.
+# Postgres example — change engine/family/port variables for MySQL.
 
-  allowed_cidrs = [
-    {
-      "name" : "general-ingress"
-      "ip" : "0.0.0.0/0",
-      "description" : "Grant Access"
-    }
-  ]
-  depends_on = [module.vpc]
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
+}
+
+# --- RDS from Snapshot ---
+
+module "rds_snapshot" {
+  source = "../"
+
+  db_identifier    = "example-customer-dev-restored" # alphanumeric and hyphens only
+  snapshot_db_name = "example-customer-dev-snapshot" # existing snapshot identifier in AWS
+  username         = "postgres"                      # must match the snapshot's admin username
+  initial_db_name  = "appdb"
+  instance_class   = "db.t3.medium"
+
+  # Engine — must match the engine used when the snapshot was taken
+  engine               = "postgres"
+  engine_version       = "16"
+  major_engine_version = "16"
+  rds_family           = "postgres16"
+  db_port              = 5432
+
+  # Networking
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  rds_subnets    = module.vpc.private_subnets
+  intra_subnets  = module.vpc.intra_subnets # used for Lambda credential manager placement
+
+  disable_rds_public_access = true
 }
 ```
 
@@ -67,8 +71,8 @@ module "develop" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_db"></a> [db](#module\_db) | terraform-aws-modules/rds/aws | ~> 6.12.0 |
-| <a name="module_eventbridge_scaler"></a> [eventbridge\_scaler](#module\_eventbridge\_scaler) | terraform-aws-modules/eventbridge/aws | ~> 3.17.0 |
+| <a name="module_db"></a> [db](#module\_db) | terraform-aws-modules/rds/aws | ~> 7.0 |
+| <a name="module_eventbridge_scaler"></a> [eventbridge\_scaler](#module\_eventbridge\_scaler) | terraform-aws-modules/eventbridge/aws | ~> 4.3.0 |
 | <a name="module_eventbridge_scheduler_role"></a> [eventbridge\_scheduler\_role](#module\_eventbridge\_scheduler\_role) | ../generic_iam_role | n/a |
 
 ## Resources
@@ -86,6 +90,7 @@ module "develop" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_allow_major_version_upgrade"></a> [allow\_major\_version\_upgrade](#input\_allow\_major\_version\_upgrade) | Allow major version upgrade for the RDS instance | `bool` | `false` | no |
 | <a name="input_allowed_cidrs"></a> [allowed\_cidrs](#input\_allowed\_cidrs) | Allowed Cidrs in the Database | <pre>list(object({<br/>    name        = string<br/>    ip          = string<br/>    description = string<br/>    port        = optional(string, null)<br/>  }))</pre> | `[]` | no |
 | <a name="input_apply_immediately"></a> [apply\_immediately](#input\_apply\_immediately) | Specifies whether any database modifications are applied immediately, or during the next maintenance window | `bool` | `false` | no |
 | <a name="input_backup_retention_period"></a> [backup\_retention\_period](#input\_backup\_retention\_period) | Number of Days to store Automated backup | `number` | `15` | no |
@@ -125,4 +130,4 @@ module "develop" {
 ## Outputs
 
 No outputs.
-<!-- End of Document -->
+<!-- END_TF_DOCS -->

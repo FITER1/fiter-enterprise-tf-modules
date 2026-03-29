@@ -1,4 +1,4 @@
-<!-- DO NOT UPDATE: Document auto-generated! -->
+<!-- BEGIN_TF_DOCS -->
 # AWS VPC Terraform Module
 
 This module creates an AWS [VPC](https://aws.amazon.com/vpc/) along with associated networking components.
@@ -13,30 +13,29 @@ Additionally, VPC endpoints for services like Secrets Manager are deployed, with
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
 module "vpc" {
-  source                            = "../"
-  environment                       = "development"      # Hardcoded environment
-  customer                          = "example-customer" # Hardcoded customer name
-  vpc_cidr                          = "10.0.0.0/16"      # Hardcoded VPC CIDR block
-  enable_secretmanager_vpc_endpoint = false              # Hardcoded value to disable RDS public access
+  source      = "../"
+  environment = "dev"
+  customer    = "example-customer" # change to your customer/project name
+  vpc_cidr    = "10.0.0.0/16"
   common_tags = {
-    Name        = "example-vpc"
-    Environment = "production"
-    Owner       = "exampleteam"
-  } # Hardcoded common tags
+    Name        = "example-customer-dev"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
 }
 ```
 
@@ -44,8 +43,8 @@ module "vpc" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_endpoints"></a> [endpoints](#module\_endpoints) | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | ~> 5.17.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 5.17.0 |
+| <a name="module_endpoints"></a> [endpoints](#module\_endpoints) | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | ~> 6.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 6.0 |
 
 ## Resources
 
@@ -80,4 +79,4 @@ module "vpc" {
 | <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | List of IDs of public subnets |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
-<!-- End of Document -->
+<!-- END_TF_DOCS -->

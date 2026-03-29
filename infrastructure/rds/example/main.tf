@@ -1,63 +1,98 @@
-# Generic RDS
+# MySQL RDS instance with master password managed by Secrets Manager.
+# Variants for snapshot restore and read replica are shown as additional modules below.
+
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
+}
+
+# --- RDS Instance ---
+
 module "rds" {
-  source                                 = "../"
-  db_identifier                          = "mydb1"                                # Unique identifier for the RDS instance
-  username                               = "admin"                                # Hardcoded username
-  vpc_id                                 = "vpc-12345678"                         # Hardcoded VPC ID
-  vpc_cidr_block                         = "10.0.0.0/16"                          # Hardcoded VPC CIDR block
-  rds_subnets                            = ["subnet-11111111", "subnet-22222222"] # Hardcoded RDS subnets
-  initial_db_name                        = "exampledb"                            # Hardcoded initial database name
-  instance_class                         = "db.t3.medium"                         # Instance type
-  intra_subnets                          = ["subnet-33333333", "subnet-44444444"] # Hardcoded intra subnets
-  db_service_users                       = ["service-user-1", "service-user-2"]   # Hardcoded RDS service users
-  disable_rds_public_access              = true                                   # Disable public access to RDS
-  allowed_cidrs                          = ["192.168.1.0/24", "10.0.0.0/16"]      # Allowed CIDR ranges
-  rds_db_delete_protection               = true                                   # Enable deletion protection
-  engine_version                         = "8.0"                                  # Engine version for MySQL
-  major_engine_version                   = "8"                                    # Major engine version for MySQL
-  engine                                 = "mysql"                                # Database engine
-  rds_family                             = "mysql8.0"                             # RDS family for MySQL
-  cloudwatch_logs_names                  = ["error", "general", "slowquery"]      # CloudWatch log group names
-  db_port                                = 3306                                   # Database port for MySQL
-  db_storage_size                        = 100                                    # Storage size in GB
-  cloudwatch_log_group_retention_in_days = 14                                     # Retention period for CloudWatch logs
-  create_cloudwatch_log_group            = true                                   # Whether to create CloudWatch log group
-  encrypyt_db_storage                    = true                                   # Encrypt DB storage
-  region                                 = "eu-west-1"                            # AWS region]
-  environment                            = "dev"                                  # Environment
+  source = "../"
+
+  db_identifier  = "example-customer-dev-db" # alphanumeric and hyphens only
+  instance_class = "db.t3.medium"
+  environment    = "dev"
+
+  # Engine
+  engine               = "mysql"
+  engine_version       = "8.0"
+  major_engine_version = "8.0"
+  rds_family           = "mysql8.0"
+  db_port              = 3306
+  initial_db_name      = "appdb"
+
+  # Networking
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  rds_subnets    = module.vpc.private_subnets
+
+  disable_rds_public_access   = true
+  manage_master_user_password = true # stores master password in Secrets Manager
+
+  # Storage
+  db_storage_size    = 50
+  encrypt_db_storage = true
+
+  # Additional CIDR ingress (optional)
+  allowed_cidrs = [
+    {
+      name        = "app-servers"
+      ip          = "10.0.1.0/24" # change to your application subnet CIDR
+      description = "Allow access from application servers"
+    }
+  ]
 }
 
-# RDS From Snapshot
-module "rds-snapshot" {
-  source                    = "../"
-  db_identifier             = "mydb1"
-  username                  = "admin"
-  snapshot_name             = "mydb-snapshot" # <======= snapshot identifier
-  vpc_id                    = "vpc-12345678"
-  vpc_cidr_block            = "10.0.0.0/16"
-  rds_subnets               = ["subnet-11111111", "subnet-22222222"]
-  initial_db_name           = "exampledb"
-  instance_class            = "db.t3.medium"
-  intra_subnets             = ["subnet-33333333", "subnet-44444444"]
-  db_service_users          = ["service-user-1", "service-user-2"]
-  disable_rds_public_access = true
-  # ...
-}
+# --- RDS from Snapshot (uncomment to use) ---
 
-# RDS With Read Replica
-module "rds-replicas" {
-  source                    = "../"
-  db_identifier             = "mydb1"
-  username                  = "admin"
-  replicate_source_db       = module.rds.db_identifier # <======= source db identifier
-  vpc_id                    = "vpc-12345678"
-  vpc_cidr_block            = "10.0.0.0/16"
-  rds_subnets               = ["subnet-11111111", "subnet-22222222"]
-  initial_db_name           = "exampledb"
-  instance_class            = "db.t3.medium"
-  intra_subnets             = ["subnet-33333333", "subnet-44444444"]
-  db_service_users          = ["service-user-1", "service-user-2"]
-  disable_rds_public_access = true
-  allowed_cidrs             = ["192.168.1.0/24", "10.0.0.0/16"]
-  # ...
-}
+# module "rds_from_snapshot" {
+#   source = "../"
+#
+#   db_identifier   = "example-customer-dev-db-restored"
+#   instance_class  = "db.t3.medium"
+#   environment     = "dev"
+#   snapshot_name   = "example-customer-dev-db-snapshot-id" # snapshot identifier in AWS
+#
+#   engine               = "mysql"
+#   engine_version       = "8.0"
+#   major_engine_version = "8.0"
+#   rds_family           = "mysql8.0"
+#   db_port              = 3306
+#
+#   vpc_id         = module.vpc.vpc_id
+#   vpc_cidr_block = module.vpc.vpc_cidr_block
+#   rds_subnets    = module.vpc.private_subnets
+#
+#   disable_rds_public_access = true
+# }
+
+# --- Read Replica (uncomment to use; primary must exist first) ---
+
+# module "rds_replica" {
+#   source = "../"
+#
+#   db_identifier       = "example-customer-dev-db-replica"
+#   instance_class      = "db.t3.medium"
+#   environment         = "dev"
+#   read_replica        = true
+#   replicate_source_db = module.rds.db_identifier
+#
+#   engine               = "mysql"
+#   engine_version       = "8.0"
+#   major_engine_version = "8.0"
+#   rds_family           = "mysql8.0"
+#   db_port              = 3306
+#
+#   vpc_id         = module.vpc.vpc_id
+#   vpc_cidr_block = module.vpc.vpc_cidr_block
+#   rds_subnets    = module.vpc.private_subnets
+#
+#   disable_rds_public_access = true
+# }

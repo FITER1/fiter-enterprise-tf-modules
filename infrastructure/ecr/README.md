@@ -1,4 +1,4 @@
-<!-- DO NOT UPDATE: Document auto-generated! -->
+<!-- BEGIN_TF_DOCS -->
 # AWS ECR Terraform Module
 
 This module provisions multiple [Amazon Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/) repositories on AWS.
@@ -14,22 +14,30 @@ This module ensures security, scalability, and easy management of container imag
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
+# ECR repositories with AES256 encryption. Image scanning on push is disabled
+# by default — enable it per-repository if your workflow requires it.
+
 module "ecr" {
-  source          = "../"
-  registries_name = ["sample-registry"]
+  source = "../"
+
+  registries_name = [
+    "example-customer/api", # change to your service names
+    "example-customer/worker",
+    "example-customer/frontend",
+  ]
 }
 ```
 
@@ -52,4 +60,4 @@ No modules.
 ## Outputs
 
 No outputs.
-<!-- End of Document -->
+<!-- END_TF_DOCS -->

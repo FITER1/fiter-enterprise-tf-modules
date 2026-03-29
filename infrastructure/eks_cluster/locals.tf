@@ -4,12 +4,6 @@ locals {
   cluster_name = "${var.customer}-${var.environment}"
   args         = var.assume_role_arn == "" ? ["eks", "get-token", "--cluster-name", local.cluster_name] : ["eks", "get-token", "--cluster-name", local.cluster_name, "--role-arn", "${var.assume_role_arn}"]
 
-  kube_deploy_user = var.helm_deploy ? [{
-    rolearn  = "arn:aws:iam::${local.account_id}:role/${local.cluster_name}-ghdeploy-role-kube-deploy"
-    username = "helm-ci-deployer"
-    groups   = ["ci-user"]
-  }] : []
-
   node_security_group_rules = {
     ingress_self_all = {
       description = "Node to node all ports/protocols"
@@ -57,23 +51,4 @@ locals {
       ]
     }
   ]
-
-  auth_roles = [
-    for role in var.aws_auth_roles : {
-      rolearn  = role
-      username = role
-      groups   = ["system:masters"]
-    }
-  ]
-
-  eks_auth_users = [
-    for user in var.aws_auth_users :
-    {
-      userarn  = format("arn:aws:iam::%s:user/%s", local.account_id, user)
-      username = user
-      groups   = ["system:masters"]
-    }
-  ]
-
-  eks_auth_roles = concat(local.auth_roles, local.node_roles, local.kube_deploy_user)
 }

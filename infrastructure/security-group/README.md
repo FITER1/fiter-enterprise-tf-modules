@@ -1,4 +1,4 @@
-<!-- DO NOT UPDATE: Document auto-generated! -->
+<!-- BEGIN_TF_DOCS -->
 # Security Group Module
 
 This module provisions a security group with the specified rules.
@@ -7,34 +7,58 @@ This module provisions a security group with the specified rules.
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
+# Shared security group allowing HTTPS access from specific IP ranges.
+
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
+}
+
+# --- Security Group ---
+
 module "infra_security_group" {
   source = "../"
-  name   = "dev-infra-sg"
-  vpc_id = "vpc-001"
-  security_group_rules = [{
-    name        = "user-1"
-    ip          = "123.4.5.4/32"
-    description = "Grant Access to DB from user 1"
-  }]
-  ports = [443]
-  tags = {
-    component   = "infra"
-    environment = "dev"
-  }
 
+  name   = "example-customer-dev-infra-sg"
+  vpc_id = module.vpc.vpc_id
+
+  security_group_rules = [
+    {
+      name        = "office-vpn"
+      ip          = "203.0.113.0/24" # change to your office/VPN egress CIDR
+      description = "Allow access from office VPN"
+    },
+    {
+      name        = "monitoring"
+      ip          = "10.0.2.0/24" # change to your monitoring subnet CIDR
+      description = "Allow access from monitoring servers"
+    },
+  ]
+
+  ports = [443, 8080] # ports to open for the rules above
+
+  tags = {
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
 }
 ```
 
@@ -65,4 +89,4 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the security group |
-<!-- End of Document -->
+<!-- END_TF_DOCS -->

@@ -1,0 +1,28 @@
+name: "release-drafter"
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - .github/**
+      - README.md
+      - .tflint.hcl
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        with:
+          publish: true
+          prerelease: false
+          config-name: release-drafter-config.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,123 @@
+name: Terraform Validation
+
+on:
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '.tflint.hcl'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_VERSION: "1.14.7"
+
+jobs:
+  # ── Job 1: format check ────────────────────────────────────────
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+  # ── Job 2: detect which modules have changed ───────────────────
+  detect-changes:
+    name: Detect Changed Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.dirs.outputs.modules }}
+      has_changes: ${{ steps.dirs.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          list-files: json
+          filters: |
+            modules:
+              - 'infrastructure/**'
+              - '!infrastructure/**/example/**'
+
+      - name: Derive changed module directories
+        id: dirs
+        run: |
+          modules=$(echo '${{ steps.filter.outputs.modules_files }}' \
+            | jq -r '.[] | split("/")[:-1] | join("/")' \
+            | grep '^infrastructure/' \
+            | grep -v '/example' \
+            | sort -u \
+            | while read -r dir; do [ -d "$dir" ] && echo "$dir"; done \
+            | jq -R . | jq -cs .)
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+          echo "has_changes=$([[ "$modules" != "[]" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Debug changed modules
+        run: |
+          echo "Changed modules: ${{ steps.dirs.outputs.modules }}"
+
+  # ── Job 3: validate each changed module in parallel ────────────
+  validate:
+    name: "Validate: ${{ matrix.module }}"
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - uses: terraform-linters/setup-tflint@v6
+        name: Setup TFLint
+
+      - name: Init TFLint plugins
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: terraform init
+        run: terraform -chdir=${{ matrix.module }} init -backend=false
+
+      - name: terraform validate
+        run: terraform -chdir=${{ matrix.module }} validate
+
+      - name: tflint
+        run: |
+          tflint \
+            --chdir=${{ matrix.module }} \
+            --minimum-failure-severity=error
+
+  # ── Job 4: generate documentation ─────────────────
+  docs:
+    name: Generate Documentation
+    needs: validate
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          config-file: .terraform-docs.yml
+          git-commit-message: "docs: update documentation for modules"
+          recursive: true
+          recursive-path: infrastructure
+          git-push: "true"
+          output-method: replace

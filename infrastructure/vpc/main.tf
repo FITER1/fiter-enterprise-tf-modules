@@ -15,7 +15,7 @@ data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.17.0"
+  version = "~> 6.0"
 
   name = local.name
   cidr = var.vpc_cidr
@@ -41,7 +41,7 @@ module "vpc" {
 module "endpoints" {
   count                      = var.enable_network_endpoints ? 1 : 0
   source                     = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version                    = "~> 5.17.0"
+  version                    = "~> 6.0"
   vpc_id                     = module.vpc.vpc_id
   create_security_group      = true
   subnet_ids                 = module.vpc.private_subnets

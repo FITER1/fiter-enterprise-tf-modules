@@ -233,6 +233,7 @@ variable "scheduler_timezone" {
 variable "region" {
   description = "Region to deploy the resources"
   type        = string
+  default     = "eu-west-2"
 }
 
 variable "environment" {
@@ -257,4 +258,22 @@ variable "tags" {
   default     = {}
   description = "Expose Tags field"
   type        = map(any)
+}
+
+variable "allow_major_version_upgrade" {
+  type        = bool
+  description = "Allow Major Version Upgrade for RDS Instance"
+  default     = false
+}
+
+variable "option_group_skip_destroy" {
+  type        = bool
+  description = "Skip Destroying Option Group"
+  default     = true
+}
+
+variable "parameter_group_skip_destroy" {
+  type        = bool
+  description = "Skip Destroying Parameter Group"
+  default     = true
 }

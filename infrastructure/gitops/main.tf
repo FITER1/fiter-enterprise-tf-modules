@@ -153,7 +153,7 @@ resource "kubernetes_secret_v1" "argocd_repositories" {
   depends_on = [helm_release.argocd]
 }
 
-resource "kubernetes_secret" "argo_notification_secret" {
+resource "kubernetes_secret_v1" "argo_notification_secret" {
   count = var.enable_argocd_notifications ? 1 : 0
 
   metadata {

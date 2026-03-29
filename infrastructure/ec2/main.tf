@@ -40,7 +40,7 @@ resource "random_shuffle" "subnet" {
 
 module "key_pair" {
   source             = "terraform-aws-modules/key-pair/aws"
-  version            = "2.1.0"
+  version            = "2.1.1"
   create             = var.create_key_pair
   key_name           = local.key_name
   create_private_key = true
@@ -57,7 +57,7 @@ resource "aws_ssm_parameter" "aws_key_pair" {
 
 module "ec2" {
   source                      = "terraform-aws-modules/ec2-instance/aws"
-  version                     = "~> 5.8.0"
+  version                     = "~> 6.0"
   user_data_base64            = var.user_data_base64
   user_data                   = var.user_data
   user_data_replace_on_change = var.user_data_replace_on_change
@@ -83,13 +83,12 @@ module "ec2" {
 
   tags = local.common_tags
 
-  root_block_device = [
-    {
-      volume_size = var.ebs_volume_size
-      volume_type = var.ebs_volume_type
-      encrypted   = var.enable_encrypted_volume
-    }
-  ]
+  # ec2-instance module v6 changed root_block_device from a list to a single object
+  root_block_device = {
+    volume_size = var.ebs_volume_size
+    volume_type = var.ebs_volume_type
+    encrypted   = var.enable_encrypted_volume
+  }
 
   timeouts = {
     create = var.create_timeout
@@ -108,24 +107,23 @@ resource "aws_security_group" "this" {
   tags        = local.common_tags
 }
 
-resource "aws_security_group_rule" "ingress" {
-  for_each          = var.create_security_group ? var.sg_ingress_rules : {}
-  type              = "ingress"
+# aws_security_group_rule was removed in AWS provider v6.
+# Replaced with aws_vpc_security_group_ingress_rule / aws_vpc_security_group_egress_rule.
+# Ingress: one resource per (rule_name, cidr) pair (flattened via local.sg_ingress_rules_flat).
+resource "aws_vpc_security_group_ingress_rule" "ingress" {
+  for_each          = local.sg_ingress_rules_flat
+  security_group_id = aws_security_group.this[0].id
   from_port         = each.value.port
   to_port           = each.value.port
-  protocol          = each.value.protocol
-  security_group_id = aws_security_group.this[0].id
-  cidr_blocks       = each.value.cidr
+  ip_protocol       = each.value.protocol
+  cidr_ipv4         = each.value.cidr
 }
 
-resource "aws_security_group_rule" "egress" {
+resource "aws_vpc_security_group_egress_rule" "egress" {
   count             = var.create_security_group ? 1 : 0
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
   security_group_id = aws_security_group.this[0].id
-  cidr_blocks       = ["0.0.0.0/0"]
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 resource "aws_volume_attachment" "data" {

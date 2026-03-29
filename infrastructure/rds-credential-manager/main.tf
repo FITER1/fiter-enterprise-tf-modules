@@ -9,7 +9,7 @@ data "aws_caller_identity" "current" {}
 
 module "credential_manager" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "7.20.2"
+  version = "~> 8.0"
 
   create         = true
   create_package = var.function_source == "zip"
@@ -80,7 +80,7 @@ data "aws_iam_policy_document" "credential_manager_lambda" {
 
 module "pymysql_layer" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "6.0.0"
+  version = "~> 8.0"
 
   create                 = var.function_source == "zip"
   create_layer           = var.function_source == "zip"
@@ -131,7 +131,7 @@ resource "aws_lambda_invocation" "db_service" {
 module "endpoints" {
   count   = var.enable_secretmanager_vpc_endpoint ? 1 : 0
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "~> 5.17.0"
+  version = "~> 6.0"
 
   vpc_id                = var.vpc_id
   create_security_group = true
@@ -148,6 +148,7 @@ module "endpoints" {
 
   endpoints = {
     secretsmanager = {
+      # interface endpoint
       service             = "secretsmanager"
       private_dns_enabled = true
       tags                = { Name = "secretsmanager-vpc-endpoint" }

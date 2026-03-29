@@ -1,4 +1,4 @@
-<!-- DO NOT UPDATE: Document auto-generated! -->
+<!-- BEGIN_TF_DOCS -->
 # Secrets Generator Module
 This Terraform module is responsible for generating secrets for the infrastructure.
 It is designed to be reusable and can be integrated into various parts of the infrastructure
@@ -10,29 +10,41 @@ The module will output the generated secrets which can be used in other parts of
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
+# Generates random secrets and stores them in AWS Secrets Manager.
+# Secret ARNs are scoped to the cluster name prefix.
+
 module "secrets" {
-  source             = "../../../../terraform-modules/infrastructure/secrets-generator"
-  clustername        = "revving-eks-2"
-  secret_reader_arns = ["arn:aws:iam::12345678:role/revving-dev-eks-external-secrets"] # allowed secrets readers
+  source      = "../"
+  clustername = "example-customer-dev" # change to your EKS cluster name
+
+  secret_reader_arns = [
+    "arn:aws:iam::123456789012:role/example-customer-dev-external-secrets", # change to your External Secrets operator role ARN
+  ]
+
   secrets = {
     grafana = {
-      passwordLength       = 20
-      overridesSpecialChar = false
+      passwordLength       = 24
+      overridesSpecialChar = "!#$%&*()-_=+[]{}<>:?" # special chars to include; omit to use the default set
     }
-    application_secret = {}
+    app_secret = {} # uses default length (32) and default special chars
+  }
+
+  common_tags = {
+    Environment = "dev"
+    ManagedBy   = "terraform"
   }
 }
 ```
@@ -41,7 +53,7 @@ module "secrets" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | terraform-aws-modules/secrets-manager/aws | ~> 1.3.0 |
+| <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | terraform-aws-modules/secrets-manager/aws | ~> 2.0 |
 
 ## Resources
 
@@ -64,4 +76,4 @@ module "secrets" {
 |------|-------------|
 | <a name="output_secret"></a> [secret](#output\_secret) | Name of Generated Secret |
 | <a name="output_secret_arn"></a> [secret\_arn](#output\_secret\_arn) | ARN of Generated Secret |
-<!-- End of Document -->
+<!-- END_TF_DOCS -->

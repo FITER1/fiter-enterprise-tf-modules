@@ -1,0 +1,1 @@
+# Deprecated: This module is deprecated and should not be used for new deployments. Please refer to the documentation for the new Kubernetes module for updated best practices and features.

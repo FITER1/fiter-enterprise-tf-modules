@@ -1,0 +1,34 @@
+{
+  "commitMessageExtra": "to {{newVersion}}",
+  "commitMessageTopic": "Terraform {{depName}}",
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
+  "enabled": true,
+  "enabledManagers": [
+    "terraform"
+  ],
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}{{{controls}}}",
+  "rebaseWhen": "conflicted",
+  "semanticCommits": "enabled",
+  "suppressNotifications": [
+    "prIgnoreNotification"
+  ],
+  "timezone": "Europe/London",
+  "terraform": {
+    "fileMatch": [
+      "infrastructure/.+\\.tf$"
+    ]
+  },
+  "ignorePaths": [
+    "**/example/**",
+    "kubernetes/**"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "*"
+      ],
+      "commitMessageTopic": "{{depName}}"
+    }
+  ]
+}

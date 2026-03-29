@@ -160,3 +160,33 @@ variable "skip_final_snapshot" {
   description = "Skip final snapshot"
   default     = true
 }
+
+variable "cluster_parameter_group" {
+  description = "Map of nested arguments for the created DB cluster parameter group"
+  type = object({
+    name            = optional(string)
+    use_name_prefix = optional(bool, true)
+    description     = optional(string)
+    family          = string
+    parameters = optional(list(object({
+      name         = string
+      value        = string
+      apply_method = optional(string, "immediate")
+    })))
+  })
+  default = null
+}
+
+variable "security_group_ingress_rules" {
+  description = "Map of security group ingress rules to add to the security group created"
+  type        = map(any)
+  default     = {}
+  nullable    = false
+}
+
+variable "security_group_egress_rules" {
+  description = "Map of security group egress rules to add to the security group created"
+  type        = map(any)
+  default     = {}
+  nullable    = false
+}
