@@ -10,21 +10,21 @@ The module will output the generated secrets which can be used in other parts of
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
 module "secrets" {
-  source             = "../../../../terraform-modules/infrastructure/secrets-generator"
+  source             = "../"
   clustername        = "revving-eks-2"
   secret_reader_arns = ["arn:aws:iam::12345678:role/revving-dev-eks-external-secrets"] # allowed secrets readers
   secrets = {
@@ -41,7 +41,7 @@ module "secrets" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | terraform-aws-modules/secrets-manager/aws | ~> 1.3.0 |
+| <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | terraform-aws-modules/secrets-manager/aws | ~> 2.0 |
 
 ## Resources
 

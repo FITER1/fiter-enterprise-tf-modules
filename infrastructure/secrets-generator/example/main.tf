@@ -1,12 +1,24 @@
+# Generates random secrets and stores them in AWS Secrets Manager.
+# Secret ARNs are scoped to the cluster name prefix.
+
 module "secrets" {
-  source             = "../../../../terraform-modules/infrastructure/secrets-generator"
-  clustername        = "fiter-eks-2"
-  secret_reader_arns = ["arn:aws:iam::12345678:role/fiter-dev-eks-external-secrets"] # allowed secrets readers
+  source      = "../"
+  clustername = "example-customer-dev" # change to your EKS cluster name
+
+  secret_reader_arns = [
+    "arn:aws:iam::123456789012:role/example-customer-dev-external-secrets", # change to your External Secrets operator role ARN
+  ]
+
   secrets = {
     grafana = {
-      passwordLength       = 20
-      overridesSpecialChar = false
+      passwordLength       = 24
+      overridesSpecialChar = "!#$%&*()-_=+[]{}<>:?" # special chars to include; omit to use the default set
     }
-    application_secret = {}
+    app_secret = {} # uses default length (32) and default special chars
+  }
+
+  common_tags = {
+    Environment = "dev"
+    ManagedBy   = "terraform"
   }
 }
