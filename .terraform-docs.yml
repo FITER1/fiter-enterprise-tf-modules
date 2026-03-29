@@ -1,0 +1,37 @@
+formatter: "markdown" # this is required
+
+header-from: main.tf
+
+recursive:
+  enabled: false
+  path: modules
+
+output:
+  file: README.md
+  mode: replace
+  template: |-
+    <!-- DO NOT UPDATE: Document auto-generated! -->
+    {{ .Content }}
+    <!-- End of Document -->
+
+content: |-
+  {{ .Header }}
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  ## Usage
+  To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
+
+  ```hcl
+  {{ include "example/main.tf" }}
+  ```
+
+  {{ .Modules }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}

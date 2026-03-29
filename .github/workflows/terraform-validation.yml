@@ -6,6 +6,10 @@ on:
       - '**/*.tf'
       - '.tflint.hcl'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   TF_IN_AUTOMATION: "true"
   TF_VERSION: "1.14.7"
@@ -49,6 +53,7 @@ jobs:
         run: |
           modules=$(echo '${{ steps.filter.outputs.modules_files }}' \
             | jq -r '.[] | split("/")[:-1] | join("/")' \
+            | grep '^infrastructure/' \
             | grep -v '/example' \
             | sort -u \
             | while read -r dir; do [ -d "$dir" ] && echo "$dir"; done \
@@ -80,7 +85,6 @@ jobs:
       - uses: terraform-linters/setup-tflint@v6
         name: Setup TFLint
 
-      # Downloads the AWS ruleset plugin declared in .tflint.hcl
       - name: Init TFLint plugins
         run: tflint --init
         env:
@@ -96,5 +100,23 @@ jobs:
         run: |
           tflint \
             --chdir=${{ matrix.module }} \
-            --config="$(pwd)/.tflint.hcl" \
             --minimum-failure-severity=error
+
+  # ── Job 4: generate documentation ─────────────────
+  docs:
+    name: Generate Documentation
+    needs: validate
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          config-file: .terraform-docs.yml
+          git-commit-message: "docs: update documentation for modules"
+          recursive: true
+          recursive-path: infrastructure
+          git-push: "true"
