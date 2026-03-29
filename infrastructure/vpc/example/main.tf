@@ -1,12 +1,11 @@
 module "vpc" {
-  source                            = "../"
-  environment                       = "development"      # Hardcoded environment
-  customer                          = "example-customer" # Hardcoded customer name
-  vpc_cidr                          = "10.0.0.0/16"      # Hardcoded VPC CIDR block
-  enable_secretmanager_vpc_endpoint = false              # Hardcoded value to disable RDS public access
+  source      = "../"
+  environment = "dev"
+  customer    = "example-customer" # change to your customer/project name
+  vpc_cidr    = "10.0.0.0/16"
   common_tags = {
-    Name        = "example-vpc"
-    Environment = "production"
-    Owner       = "exampleteam"
-  } # Hardcoded common tags
+    Name        = "example-customer-dev"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
 }

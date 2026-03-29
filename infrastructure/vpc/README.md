@@ -13,25 +13,24 @@ Additionally, VPC endpoints for services like Secrets Manager are deployed, with
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
 module "vpc" {
-  source                            = "../"
-  environment                       = "development"      # Hardcoded environment
-  customer                          = "example-customer" # Hardcoded customer name
-  vpc_cidr                          = "10.0.0.0/16"      # Hardcoded VPC CIDR block
-  enable_secretmanager_vpc_endpoint = false              # Hardcoded value to disable RDS public access
+  source      = "../"
+  environment = "development"      # Hardcoded environment
+  customer    = "example-customer" # Hardcoded customer name
+  vpc_cidr    = "10.0.0.0/16"      # Hardcoded VPC CIDR block
   common_tags = {
     Name        = "example-vpc"
     Environment = "production"
@@ -44,8 +43,8 @@ module "vpc" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_endpoints"></a> [endpoints](#module\_endpoints) | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | ~> 5.17.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 5.17.0 |
+| <a name="module_endpoints"></a> [endpoints](#module\_endpoints) | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | ~> 6.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 6.0 |
 
 ## Resources
 
@@ -59,10 +58,13 @@ module "vpc" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | (Required) Resource Tag | `map(any)` | n/a | yes |
 | <a name="input_customer"></a> [customer](#input\_customer) | (Required) Name of Customer. ex: Fiter | `string` | n/a | yes |
+| <a name="input_enable_flow_log"></a> [enable\_flow\_log](#input\_enable\_flow\_log) | (Optional) Whether to enable VPC Flow Logs. | `bool` | `false` | no |
 | <a name="input_enable_karpenter_autoscaler"></a> [enable\_karpenter\_autoscaler](#input\_enable\_karpenter\_autoscaler) | Enabled Karpenter Autoscaler | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | (Optional) Should be true if you want to provision NAT Gateways for each of your private networks | `bool` | `true` | no |
 | <a name="input_enable_network_endpoints"></a> [enable\_network\_endpoints](#input\_enable\_network\_endpoints) | Enable VPC Endpoints for the cluster | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | (Required) Environment e.g Dev, Stg, Prod | `string` | n/a | yes |
+| <a name="input_flow_log_destination_arn"></a> [flow\_log\_destination\_arn](#input\_flow\_log\_destination\_arn) | (Optional) The ARN of the destination to which the flow log data is published. | `string` | `""` | no |
+| <a name="input_flow_log_destination_type"></a> [flow\_log\_destination\_type](#input\_flow\_log\_destination\_type) | (Optional) The type of destination to which the flow log data is published. Valid values are 'cloud-watch-logs' or 's3'. | `string` | `"s3"` | no |
 | <a name="input_single_nat_gateway"></a> [single\_nat\_gateway](#input\_single\_nat\_gateway) | (Optional) Should be true if you want to provision a single shared NAT Gateway across all of your private networks | `bool` | `true` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | (Required) VPC Cidr | `string` | n/a | yes |
 | <a name="input_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#input\_vpc\_gateway\_endpoints) | List of Services to create VPC Gateway Endpoints. Used for Private Clusters | `list(string)` | `[]` | no |
