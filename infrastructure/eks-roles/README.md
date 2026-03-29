@@ -13,28 +13,89 @@ The IAM policies are generated dynamically based on input policy files and assoc
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
+# OIDC-based IAM roles for EKS workloads (ALB, ArgoCD, External Secrets, etc.)
+# Requires a running EKS cluster — VPC and EKS are included as dependencies.
+
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
+}
+
+module "eks" {
+  source          = "./../../eks_cluster"
+  environment     = "dev"
+  customer        = "example-customer"
+  cluster_version = "1.31"
+  common_tags     = { Name = "example-customer-dev", Environment = "dev" }
+
+  vpc_id          = module.vpc.vpc_id
+  subnets         = module.vpc.private_subnets
+  route_table_ids = module.vpc.private_route_table_ids
+
+  aws_auth_users = []
+  aws_auth_roles = []
+
+  node_groups_attributes = {
+    general = {
+      name                    = "example-customer-dev-general"
+      instance_types          = ["t3a.medium"]
+      capacity_type           = "ON_DEMAND"
+      ami_type                = "AL2_x86_64"
+      taints                  = []
+      max_size                = 3
+      min_size                = 1
+      desired_size            = 1
+      disk_size               = 50
+      subnet_ids              = module.vpc.private_subnets
+      pre_bootstrap_user_data = ""
+    }
+  }
+
+  node_security_group_additional_rules = {}
+}
+
+# --- EKS IAM Roles ---
+
 module "eks_iam_roles" {
-  source                      = "../"
-  enable_alb_controller       = false
-  enable_argocd               = false
+  source = "../"
+
+  # Required variables
+  eks_cluster_name    = module.eks.cluster_name
+  cluster_provider_arn = module.eks.oidc_provider_arn # OIDC provider ARN (not the issuer URL)
+  region              = "eu-west-1"                   # change to your AWS region
+
+  # Enable the roles your cluster needs — all default to false except external_secrets and eks_log
+  enable_alb_controller     = true  # IAM role for AWS Load Balancer Controller
+  enable_argocd             = false # IAM role for ArgoCD (S3/Secrets Manager access)
+  enable_cluster_autoscaler = false # IAM role for Cluster Autoscaler
+  enable_external_dns       = false # IAM role for External DNS
+
+  # External Secrets operator role (enabled by default)
   eks_external_secret_enabled = true
-  cluster_oidc_issuer_url     = module.eks.cluster_oidc_issuer_url
-  eks_cluster_name            = "example_cluster_name"
-  eks_log_bucket              = module.eks.eks_log_bucket_arn
-  additional_policies         = {}
+
+  # EKS log bucket role (enabled by default) — references the bucket created by the eks_cluster module
+  enable_eks_log_bucket = true
+  eks_log_bucket        = module.eks.eks_log_bucket_arn
+
+  additional_policies = {} # add custom IAM policies for workload-specific service accounts
 }
 ```
 
@@ -42,7 +103,7 @@ module "eks_iam_roles" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_eks_iam_role"></a> [eks\_iam\_role](#module\_eks\_iam\_role) | terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc | ~> 5.59.0 |
+| <a name="module_eks_iam_role"></a> [eks\_iam\_role](#module\_eks\_iam\_role) | terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts | ~> 6.0 |
 
 ## Resources
 
@@ -73,7 +134,7 @@ module "eks_iam_roles" {
 | <a name="input_argocd_sa_name"></a> [argocd\_sa\_name](#input\_argocd\_sa\_name) | (Optional) Kubernetes Service Account for ArgoCD Controller | `string` | `"*"` | no |
 | <a name="input_ca_k8s_namespace"></a> [ca\_k8s\_namespace](#input\_ca\_k8s\_namespace) | (Optional) Kubernetes Namespace for Cluster Autoscaler Controller | `string` | `"kube-system"` | no |
 | <a name="input_ca_sa_name"></a> [ca\_sa\_name](#input\_ca\_sa\_name) | (Optional) Kubernetes Service Account for Cluster Autoscaler Controller | `string` | `"cluster-autoscaler-controller-sa"` | no |
-| <a name="input_cluster_oidc_issuer_url"></a> [cluster\_oidc\_issuer\_url](#input\_cluster\_oidc\_issuer\_url) | (Required) OIDC URL for the Kubernetes Cluster | `string` | n/a | yes |
+| <a name="input_cluster_provider_arn"></a> [cluster\_provider\_arn](#input\_cluster\_provider\_arn) | (Required) OIDC Provider ARN for the Kubernetes Cluster | `string` | n/a | yes |
 | <a name="input_ebs_k8s_namespace"></a> [ebs\_k8s\_namespace](#input\_ebs\_k8s\_namespace) | (Optional) Kubernetes Namespace for Cluster Autoscaler Controller | `string` | `"kube-system"` | no |
 | <a name="input_ebs_sa_name"></a> [ebs\_sa\_name](#input\_ebs\_sa\_name) | (Optional) Kubernetes Service Account for EBS CSI Controller | `string` | `"ebs-csi-controller-sa"` | no |
 | <a name="input_eks_cluster_name"></a> [eks\_cluster\_name](#input\_eks\_cluster\_name) | (Required) EKS Cluster Name | `string` | n/a | yes |

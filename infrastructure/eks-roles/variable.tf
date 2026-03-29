@@ -63,9 +63,9 @@ variable "extDNS_sa_name" {
 
 # the end variable that is not been used in the module
 
-variable "cluster_oidc_issuer_url" {
+variable "cluster_provider_arn" {
   type        = string
-  description = "(Required) OIDC URL for the Kubernetes Cluster"
+  description = "(Required) OIDC Provider ARN for the Kubernetes Cluster"
 }
 
 variable "enable_alb_controller" {
