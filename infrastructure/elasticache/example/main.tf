@@ -15,7 +15,7 @@ module "vpc" {
 module "redis" {
   source = "../"
 
-  enabled          = true # set to false to destroy all resources without removing config
+  enabled          = true                         # set to false to destroy all resources without removing config
   cache_identifier = "example-customer-dev-redis" # change to your identifier (alphanumeric and hyphens only)
   vpc_id           = module.vpc.vpc_id
   vpc_cidr_block   = module.vpc.vpc_cidr_block
@@ -29,7 +29,7 @@ module "redis" {
   instance_type              = "cache.t4g.micro" # right-size for your workload
   cluster_size               = 2
   availability_zones         = ["eu-west-1a", "eu-west-1b"] # change to your target AZs
-  automatic_failover_enabled = true                          # required when cluster_size > 1
+  automatic_failover_enabled = true                         # required when cluster_size > 1
   multi_az_enabled           = false
 
   # Snapshots

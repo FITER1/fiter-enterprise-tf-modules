@@ -16,9 +16,9 @@ module "vpc" {
 module "rds" {
   source = "../"
 
-  db_identifier   = "example-customer-dev-db" # alphanumeric and hyphens only
-  instance_class  = "db.t3.medium"
-  environment     = "dev"
+  db_identifier  = "example-customer-dev-db" # alphanumeric and hyphens only
+  instance_class = "db.t3.medium"
+  environment    = "dev"
 
   # Engine
   engine               = "mysql"
@@ -33,7 +33,7 @@ module "rds" {
   vpc_cidr_block = module.vpc.vpc_cidr_block
   rds_subnets    = module.vpc.private_subnets
 
-  disable_rds_public_access = true
+  disable_rds_public_access   = true
   manage_master_user_password = true # stores master password in Secrets Manager
 
   # Storage

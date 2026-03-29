@@ -18,12 +18,10 @@ module "eks" {
   cluster_version = "1.31"
   common_tags     = { Name = "example-customer-dev", Environment = "dev" }
 
-  vpc_id          = module.vpc.vpc_id
-  subnets         = module.vpc.private_subnets
-  route_table_ids = module.vpc.private_route_table_ids
-
-  aws_auth_users = []
-  aws_auth_roles = []
+  vpc_id                               = module.vpc.vpc_id
+  subnets                              = module.vpc.private_subnets
+  route_table_ids                      = module.vpc.private_route_table_ids
+  node_security_group_additional_rules = {}
 
   node_groups_attributes = {
     general = {
@@ -40,8 +38,6 @@ module "eks" {
       pre_bootstrap_user_data = ""
     }
   }
-
-  node_security_group_additional_rules = {}
 }
 
 # --- EKS IAM Roles ---
@@ -50,9 +46,9 @@ module "eks_iam_roles" {
   source = "../"
 
   # Required variables
-  eks_cluster_name    = module.eks.cluster_name
+  eks_cluster_name     = module.eks.cluster_name
   cluster_provider_arn = module.eks.oidc_provider_arn # OIDC provider ARN (not the issuer URL)
-  region              = "eu-west-1"                   # change to your AWS region
+  region               = "eu-west-1"                  # change to your AWS region
 
   # Enable the roles your cluster needs — all default to false except external_secrets and eks_log
   enable_alb_controller     = true  # IAM role for AWS Load Balancer Controller
@@ -63,9 +59,9 @@ module "eks_iam_roles" {
   # External Secrets operator role (enabled by default)
   eks_external_secret_enabled = true
 
-  # EKS log bucket role (enabled by default) — references the bucket created by the eks_cluster module
-  enable_eks_log_bucket = true
-  eks_log_bucket        = module.eks.eks_log_bucket_arn
+  # EKS log bucket role (enabled by default)
+  enable_eks_log_bucket  = true
+  eks_logging_bucketname = "example-customer-dev-eks-logs" # change to your S3 bucket name
 
   additional_policies = {} # add custom IAM policies for workload-specific service accounts
 }

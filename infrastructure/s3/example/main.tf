@@ -4,7 +4,7 @@ module "app_assets" {
   source = "../"
 
   bucket_name   = "example-customer-dev-app-assets" # must be globally unique
-  create_bucket = true                               # set to false to manage the bucket lifecycle externally
+  create_bucket = true                              # set to false to manage the bucket lifecycle externally
 
   tags = {
     Name        = "example-customer-dev-app-assets"

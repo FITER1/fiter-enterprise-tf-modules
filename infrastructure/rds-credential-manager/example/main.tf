@@ -29,9 +29,9 @@ module "rds" {
   vpc_cidr_block = module.vpc.vpc_cidr_block
   rds_subnets    = module.vpc.private_subnets
 
-  disable_rds_public_access = true
+  disable_rds_public_access   = true
   manage_master_user_password = true
-  storage_type              = "gp3"
+  storage_type                = "gp3"
 }
 
 # --- RDS Credential Manager ---
@@ -64,10 +64,10 @@ module "credential_manager" {
   # Service users to create in the database
   db_service_users = [
     {
-      user        = "app_user"      # alphanumeric and underscores only
-      access_type = "readwrite"     # "readwrite" or "readonly"
-      db_owner    = "postgres"      # database role that owns the schemas
-      databases   = ["appdb"]       # databases this user should access
+      user        = "app_user"  # alphanumeric and underscores only
+      access_type = "readwrite" # "readwrite" or "readonly"
+      db_owner    = "postgres"  # database role that owns the schemas
+      databases   = ["appdb"]   # databases this user should access
     },
     {
       user        = "reporting_user"

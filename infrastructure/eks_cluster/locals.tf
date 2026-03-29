@@ -1,8 +1,8 @@
 locals {
-  account_id     = data.aws_caller_identity.current.id
-  prefix         = format("%s-%s", var.customer, var.environment)
-  cluster_name   = "${var.customer}-${var.environment}"
-  args           = var.assume_role_arn == "" ? ["eks", "get-token", "--cluster-name", local.cluster_name] : ["eks", "get-token", "--cluster-name", local.cluster_name, "--role-arn", "${var.assume_role_arn}"]
+  account_id   = data.aws_caller_identity.current.id
+  prefix       = format("%s-%s", var.customer, var.environment)
+  cluster_name = "${var.customer}-${var.environment}"
+  args         = var.assume_role_arn == "" ? ["eks", "get-token", "--cluster-name", local.cluster_name] : ["eks", "get-token", "--cluster-name", local.cluster_name, "--role-arn", "${var.assume_role_arn}"]
 
   node_security_group_rules = {
     ingress_self_all = {

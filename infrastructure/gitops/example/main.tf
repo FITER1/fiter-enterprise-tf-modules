@@ -17,8 +17,8 @@ module "argocd" {
     apps = {
       type     = "git"
       url      = "https://github.com/example-org/argocd-apps.git" # change to your GitOps repo
-      username = "argocd-token"                                    # GitHub username or token name
-      password = "gh-token-here"                                   # use a secret or variable in real usage
+      username = "argocd-token"                                   # GitHub username or token name
+      password = "gh-token-here"                                  # use a secret or variable in real usage
     }
   }
 
