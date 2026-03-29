@@ -4,7 +4,7 @@
 
 module "aurora" {
   source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "9.13.0"
+  version = "~> 10.0"
 
   name                   = var.db_identifier
   port                   = var.port
@@ -13,10 +13,8 @@ module "aurora" {
   master_username        = var.username
   database_name          = var.initial_db_name
   vpc_id                 = var.vpc_id
-  publicly_accessible    = local.publicly_accessible
   create_db_subnet_group = true
   subnets                = var.subnets
-  monitoring_interval    = var.monitoring_interval
   create_monitoring_role = var.create_monitoring_role
   instances              = var.cluster_instance_override
 
@@ -27,18 +25,18 @@ module "aurora" {
 
   cluster_performance_insights_enabled = false
 
-  autoscaling_enabled               = false
-  create_security_group             = true
-  security_group_rules              = var.security_group_rules
-  db_cluster_parameter_group_family = var.rds_family
+  autoscaling_enabled          = false
+  create_security_group        = true
+  security_group_ingress_rules = var.security_group_ingress_rules
+  security_group_egress_rules  = var.security_group_egress_rules
+  cluster_parameter_group      = var.cluster_parameter_group
 
 
   # Multi-AZ
-  availability_zones        = var.vpc_availability_zones
-  allocated_storage         = var.db_storage_size
-  db_cluster_instance_class = var.instance_class
-  iops                      = var.iops
-  storage_type              = var.storage_type
+  availability_zones = var.vpc_availability_zones
+  allocated_storage  = var.db_storage_size
+  iops               = var.iops
+  storage_type       = var.storage_type
 
   cluster_ca_cert_identifier = var.ca_cert_identifier
 
