@@ -25,7 +25,7 @@ data "aws_caller_identity" "current" {}
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = module.eks.cluster_certificate_authority_data != null ? base64decode(module.eks.cluster_certificate_authority_data) : ""
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
 
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
@@ -36,15 +36,15 @@ provider "kubernetes" {
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "~> 20.0"
-  cluster_name    = local.cluster_name
-  cluster_version = var.cluster_version
-  subnet_ids      = var.subnets
-  vpc_id          = var.vpc_id
-  enable_irsa     = true
+  source             = "terraform-aws-modules/eks/aws"
+  version            = "~> 21.0"
+  name               = local.cluster_name
+  kubernetes_version = var.cluster_version
+  subnet_ids         = var.subnets
+  vpc_id             = var.vpc_id
+  enable_irsa        = true
 
-  cluster_addons = {
+  addons = {
     coredns = {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
@@ -84,6 +84,7 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
       most_recent                 = true
+      before_compute              = true
       configuration_values = jsonencode({
         env = {
           ENABLE_PREFIX_DELEGATION = "true"
@@ -94,35 +95,24 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
       most_recent                 = true
-      service_account_role_arn    = module.aws_ebs_csi_iam_service_account.iam_role_arn
+      service_account_role_arn    = module.aws_ebs_csi_iam_service_account.arn
+    }
+    eks-pod-identity-agent = {
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                 = true
+      before_compute              = true
     }
   }
 
-  kms_key_administrators             = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
-  cluster_security_group_description = "The security group of the NK EKS cluster"
-  cluster_security_group_name        = "${local.prefix}-sg"
-  prefix_separator                   = "-"
-  iam_role_name                      = "${local.prefix}-role"
+  kms_key_administrators     = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+  security_group_description = "The security group of the NK EKS cluster"
+  security_group_name        = "${local.prefix}-sg"
+  prefix_separator           = "-"
+  iam_role_name              = "${local.prefix}-role"
 
-  cluster_endpoint_public_access       = var.cluster_endpoint_public_access
-  cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
-
-  eks_managed_node_group_defaults = {
-    block_device_mappings = {
-      xvda = {
-        device_name = "/dev/xvda"
-        ebs = {
-          delete_on_termination = true
-          encrypted             = true
-          volume_size           = 75
-          iops                  = 3000
-          throughput            = 150
-          volume_type           = "gp3"
-          kms_key_id            = module.ebs_kms_key.key_arn
-        }
-      }
-    }
-  }
+  endpoint_public_access       = var.cluster_endpoint_public_access
+  endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
 
   create_iam_role                          = true
   enable_cluster_creator_admin_permissions = true
@@ -136,14 +126,34 @@ module "eks" {
       max_size     = value["max_size"]
       desired_size = value["desired_size"]
       disk_size    = value["disk_size"]
-      taints       = lookup(value, "taints", [])
+      taints       = lookup(value, "taints", {})
       subnet_ids   = lookup(value, "subnet_ids", var.subnets)
 
+      disable_api_termination        = var.disable_api_termination
       instance_types                 = value["instance_types"]
       capacity_type                  = value["capacity_type"]
       pre_bootstrap_user_data        = lookup(value, "pre_bootstrap_user_data", "")
       use_latest_ami_release_version = lookup(value, "use_latest_ami_release_version", false)
-      tags                           = lookup(value, "tags", {})
+      metadata_options = lookup(value, "metadata_options", {
+        http_endpoint               = "enabled"
+        http_tokens                 = "required"
+        http_put_response_hop_limit = 2
+      })
+      block_device_mappings = lookup(value, "block_device_mappings", {
+        root_volume = {
+          device_name = "/dev/xvda"
+          ebs = {
+            delete_on_termination      = true
+            encrypted                  = true
+            iops                       = 3000
+            kms_key_id                 = module.ebs_kms_key.key_arn
+            volume_initialization_rate = 100
+            volume_size                = 75
+            volume_type                = "gp3"
+          }
+        }
+      })
+      tags = lookup(value, "tags", {})
     }
   }
 
@@ -153,7 +163,7 @@ module "eks" {
   }, var.additional_cluster_policies)
 
   node_security_group_additional_rules = merge(local.node_security_group_rules, var.node_security_group_additional_rules)
-  cluster_security_group_additional_rules = {
+  security_group_additional_rules = {
     ingress_bastion = {
       description = "Allow access from Bastion Host"
       type        = "ingress"
@@ -171,7 +181,7 @@ module "eks" {
 
 module "ebs_kms_key" {
   source  = "terraform-aws-modules/kms/aws"
-  version = "~> 3.1"
+  version = "~> 4.0"
 
   description = "Customer managed key to encrypt EKS managed node group volumes"
 
@@ -200,6 +210,8 @@ module "ebs_kms_key" {
 resource "aws_kms_key" "gp3_kms" {
   description             = "KMS key for ${module.eks.cluster_name} EBS volumes"
   deletion_window_in_days = 10
+  rotation_period_in_days = var.kms_key_rotation_days
+  enable_key_rotation     = true
 }
 
 # policy for gp3 and gp3 encrypted storage using EBS CSI Driver
@@ -239,40 +251,29 @@ resource "aws_iam_policy" "aws_ebs_csi" {
 }
 
 module "aws_ebs_csi_iam_service_account" {
-  source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-  version                       = "~> 5.59.0"
-  create_role                   = true
-  role_name                     = "${local.prefix}-aws-ebs-csi"
-  provider_url                  = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
-  role_policy_arns              = [aws_iam_policy.aws_ebs_csi.arn, "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"]
-  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+  source                = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version               = "~> 6.0"
+  create                = true
+  attach_ebs_csi_policy = true
+  name                  = "${local.prefix}-aws-ebs-csi"
+  oidc_providers = {
+    this = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
 }
 
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "~> 20.37.0"
+  version = "~> 21.0"
 
-  cluster_name            = module.eks.cluster_name
-  irsa_oidc_provider_arn  = module.eks.oidc_provider_arn
-  enable_v1_permissions   = true
-  enable_irsa             = true
-  create_instance_profile = true
-  create_access_entry     = true
+  cluster_name                    = module.eks.cluster_name
+  create_pod_identity_association = true
+  create_instance_profile         = false
+  create_access_entry             = true
   node_iam_role_additional_policies = merge({
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }, var.additional_cluster_policies)
   tags = var.common_tags
-}
-
-# POST EKS INSTALL
-resource "aws_ssm_parameter" "cluster_endpoint" {
-  name  = "/kubernetes/${local.cluster_name}/clusterEndpoint"
-  type  = "SecureString"
-  value = module.eks.cluster_endpoint
-}
-
-resource "aws_ssm_parameter" "cluster_certificate_data" {
-  name  = "/kubernetes/${local.cluster_name}/clusterCertificateData"
-  type  = "SecureString"
-  value = module.eks.cluster_certificate_authority_data
 }

@@ -25,8 +25,9 @@ variable "node_groups_attributes" {
 }
 
 variable "node_security_group_additional_rules" {
+  type        = map(any)
   description = "Additional Rules for Node Security Group"
-
+  default     = {}
 }
 
 variable "vpc_id" {
@@ -36,18 +37,6 @@ variable "vpc_id" {
 variable "subnets" {
   type        = list(string)
   description = "A list of subnet IDs where the nodes/node groups will be provisioned."
-}
-
-variable "aws_auth_users" {
-  type        = list(any)
-  description = "List of User maps to add to the aws-auth configmap"
-  default     = []
-}
-
-variable "aws_auth_roles" {
-  type        = list(any)
-  description = "List of role maps to add to the aws-auth configmap"
-  default     = []
 }
 
 variable "cluster_endpoint_public_access" {
@@ -62,7 +51,6 @@ variable "cluster_endpoint_public_access_cidrs" {
   default     = ["0.0.0.0/0"]
 }
 
-
 variable "assume_role_arn" {
   type        = string
   description = "Terraform Role to Assume"
@@ -71,14 +59,8 @@ variable "assume_role_arn" {
 
 variable "route_table_ids" {
   type        = list(string)
-  description = "Route Table ID for the s3 gateway endpoint if privake only cluster is used"
+  description = "Route Table ID for the s3 gateway endpoint if private only cluster is used"
   default     = []
-}
-
-variable "helm_deploy" {
-  type        = bool
-  description = "Create Helm Deployment User in Cluster"
-  default     = false
 }
 
 variable "enable_private_zone" {
@@ -86,6 +68,7 @@ variable "enable_private_zone" {
   type        = bool
   default     = false
 }
+
 variable "additional_cluster_policies" {
   type        = map(any)
   description = "Additional Policies to attach to the EKS Cluster"
@@ -96,7 +79,6 @@ variable "private_zone_host_name" {
   description = "Private Route53 Zone Host Name"
   type        = string
   default     = "fineract.internal"
-
 }
 
 variable "eks_access_entries" {
@@ -105,8 +87,20 @@ variable "eks_access_entries" {
   default     = {}
 }
 
+variable "disable_api_termination" {
+  type        = bool
+  description = "If true, enables termination protection on the EKS cluster EC2 instances"
+  default     = true
+}
+
 variable "authentication_mode" {
   type        = string
   description = "Authentication Mode for EKS Cluster"
   default     = "API_AND_CONFIG_MAP"
+}
+
+variable "kms_key_rotation_days" {
+  type        = number
+  description = "Number of days to rotate the KMS key for EKS managed node group volume encryption"
+  default     = 365
 }
