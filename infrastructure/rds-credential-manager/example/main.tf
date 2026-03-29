@@ -1,48 +1,84 @@
-module "postgres" {
-  source                    = "../../rds"
-  db_identifier             = "test-db"
-  environment               = "dev"
-  username                  = "postgres"
-  rds_family                = "postgres16"
-  engine                    = "postgres"
-  vpc_id                    = module.vpc.vpc_id
-  vpc_cidr_block            = module.vpc.vpc_cidr_block
-  rds_subnets               = module.vpc.private_subnets
-  initial_db_name           = "postgres"
-  instance_class            = "db.t3.medium"
-  engine_version            = "16.4"
-  major_engine_version      = "16"
-  disable_rds_public_access = true
-  storage_type              = "gp3"
-  db_port                   = 5432
-  depends_on                = [module.vpc]
+# RDS Credential Manager — provisions a Lambda function that creates and rotates
+# database service users, storing credentials in AWS Secrets Manager.
+
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
 }
 
-module "credential_generator_new" {
-  source                    = "../"
-  name                      = "fineract-db-creator"
-  enable_credential_manager = true
-  engine                    = "postgres"
-  environment               = "dev"
-  subnets                   = module.vpc.intra_subnets
-  security_group_ids        = [module.postgres.rds_security_group]
-  admin_secret_arn          = module.postgres.db_instance_master_user_secret_arn
-  database_host             = module.postgres.db_instance_address
-  database_admin_db         = "postgres"
-  database_identifier       = module.postgres.db_identifier
-  region                    = data.aws_region.current.name
-  docker_image              = "1345677899.dkr.ecr.us-east-2.amazonaws.com/postgres-db-manager:${data.aws_ecr_image.service_image.image_tags[0]}"
-  function_source           = "image"
+module "rds" {
+  source = "./../../rds"
+
+  db_identifier  = "example-customer-dev-db"
+  environment    = "dev"
+  instance_class = "db.t3.medium"
+
+  engine               = "postgres"
+  engine_version       = "16.4"
+  major_engine_version = "16"
+  rds_family           = "postgres16"
+  db_port              = 5432
+  initial_db_name      = "postgres"
+
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  rds_subnets    = module.vpc.private_subnets
+
+  disable_rds_public_access = true
+  manage_master_user_password = true
+  storage_type              = "gp3"
+}
+
+# --- RDS Credential Manager ---
+
+module "credential_manager" {
+  source = "../"
+
+  name        = "example-customer-dev-db-creator" # change to your identifier
+  environment = "dev"
+  region      = "eu-west-1" # change to your AWS region
+
+  engine = "postgres"
+
+  # Networking — Lambda runs inside the VPC to reach the RDS instance
+  vpc_id             = module.vpc.vpc_id
+  vpc_cidr           = module.vpc.vpc_cidr_block
+  subnets            = module.vpc.private_subnets
+  security_group_ids = [module.rds.rds_security_group]
+
+  # RDS connection details — wired from RDS module outputs
+  admin_secret_arn    = module.rds.db_instance_master_user_secret_arn
+  database_host       = module.rds.db_instance_address
+  database_admin_db   = "postgres"
+  database_identifier = module.rds.db_identifier
+
+  # Lambda source — use "image" for a container image or "zip" for a packaged zip
+  function_source = "image"
+  docker_image    = "123456789012.dkr.ecr.eu-west-1.amazonaws.com/postgres-db-manager:latest" # change to your ECR image URI
+
+  # Service users to create in the database
   db_service_users = [
     {
-      user        = "testuser"
-      access_type = "readwrite"
-      databases   = ["new_db", "db2_new"]
-    }
+      user        = "app_user"      # alphanumeric and underscores only
+      access_type = "readwrite"     # "readwrite" or "readonly"
+      db_owner    = "postgres"      # database role that owns the schemas
+      databases   = ["appdb"]       # databases this user should access
+    },
+    {
+      user        = "reporting_user"
+      access_type = "readonly"
+      db_owner    = "postgres"
+      databases   = ["appdb"]
+    },
   ]
-}
 
-data "aws_ecr_image" "service_image" {
-  repository_name = "postgres-db-manager"
-  most_recent     = true
+  tags = {
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
 }
