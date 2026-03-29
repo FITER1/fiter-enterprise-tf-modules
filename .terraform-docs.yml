@@ -3,8 +3,9 @@ formatter: "markdown" # this is required
 header-from: main.tf
 
 recursive:
-  enabled: false
-  path: modules
+  enabled: true
+  path: infrastructure
+  include-main: false
 
 output:
   file: README.md
@@ -25,7 +26,7 @@ content: |-
   To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
   ```hcl
-  {{ include "example/main.tf" }}
+  {{ include "./example/main.tf" }}
   ```
 
   {{ .Modules }}
