@@ -167,3 +167,211 @@ module "rds-replicas" {
 | <a name="output_db_instance_master_user_secret_arn"></a> [db\_instance\_master\_user\_secret\_arn](#output\_db\_instance\_master\_user\_secret\_arn) | ARN of the master user secret in AWS Secrets Manager |
 | <a name="output_rds_security_group"></a> [rds\_security\_group](#output\_rds\_security\_group) | value of the RDS security group |
 <!-- End of Document -->
+<!-- BEGIN_TF_DOCS -->
+# AWS RDS Terraform Module
+
+This module provisions an AWS [RDS Database Instance](https://aws.amazon.com/rds/) along with supporting resources such as Security Groups, Read Replicas, and IAM Lambda integration.
+
+Resources created include:
+- RDS instances with customizable configurations.
+- Security Groups with ingress and egress rules.
+- Read Replicas to enhance performance.
+- Lambda functions for credential management and database initialization.
+- IAM roles and policies for secure access.
+
+The module ensures seamless database access through integration with AWS Secrets Manager and Session Manager for secure credential storage and retrieval.
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
+
+## Usage
+To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
+
+```hcl
+# MySQL RDS instance with master password managed by Secrets Manager.
+# Variants for snapshot restore and read replica are shown as additional modules below.
+
+# --- Dependencies ---
+
+module "vpc" {
+  source      = "./../../vpc"
+  environment = "dev"
+  customer    = "example-customer"
+  vpc_cidr    = "10.0.0.0/16"
+  common_tags = { Name = "example-customer-dev", Environment = "dev" }
+}
+
+# --- RDS Instance ---
+
+module "rds" {
+  source = "../"
+
+  db_identifier  = "example-customer-dev-db" # alphanumeric and hyphens only
+  instance_class = "db.t3.medium"
+  environment    = "dev"
+
+  # Engine
+  engine               = "mysql"
+  engine_version       = "8.0"
+  major_engine_version = "8.0"
+  rds_family           = "mysql8.0"
+  db_port              = 3306
+  initial_db_name      = "appdb"
+
+  # Networking
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  rds_subnets    = module.vpc.private_subnets
+
+  disable_rds_public_access   = true
+  manage_master_user_password = true # stores master password in Secrets Manager
+
+  # Storage
+  db_storage_size    = 50
+  encrypt_db_storage = true
+
+  # Additional CIDR ingress (optional)
+  allowed_cidrs = [
+    {
+      name        = "app-servers"
+      ip          = "10.0.1.0/24" # change to your application subnet CIDR
+      description = "Allow access from application servers"
+    }
+  ]
+}
+
+# --- RDS from Snapshot (uncomment to use) ---
+
+# module "rds_from_snapshot" {
+#   source = "../"
+#
+#   db_identifier   = "example-customer-dev-db-restored"
+#   instance_class  = "db.t3.medium"
+#   environment     = "dev"
+#   snapshot_name   = "example-customer-dev-db-snapshot-id" # snapshot identifier in AWS
+#
+#   engine               = "mysql"
+#   engine_version       = "8.0"
+#   major_engine_version = "8.0"
+#   rds_family           = "mysql8.0"
+#   db_port              = 3306
+#
+#   vpc_id         = module.vpc.vpc_id
+#   vpc_cidr_block = module.vpc.vpc_cidr_block
+#   rds_subnets    = module.vpc.private_subnets
+#
+#   disable_rds_public_access = true
+# }
+
+# --- Read Replica (uncomment to use; primary must exist first) ---
+
+# module "rds_replica" {
+#   source = "../"
+#
+#   db_identifier       = "example-customer-dev-db-replica"
+#   instance_class      = "db.t3.medium"
+#   environment         = "dev"
+#   read_replica        = true
+#   replicate_source_db = module.rds.db_identifier
+#
+#   engine               = "mysql"
+#   engine_version       = "8.0"
+#   major_engine_version = "8.0"
+#   rds_family           = "mysql8.0"
+#   db_port              = 3306
+#
+#   vpc_id         = module.vpc.vpc_id
+#   vpc_cidr_block = module.vpc.vpc_cidr_block
+#   rds_subnets    = module.vpc.private_subnets
+#
+#   disable_rds_public_access = true
+# }
+```
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_db"></a> [db](#module\_db) | terraform-aws-modules/rds/aws | ~> 7.0 |
+| <a name="module_eventbridge_scaler"></a> [eventbridge\_scaler](#module\_eventbridge\_scaler) | terraform-aws-modules/eventbridge/aws | ~> 4.3.0 |
+| <a name="module_eventbridge_scheduler_role"></a> [eventbridge\_scheduler\_role](#module\_eventbridge\_scheduler\_role) | ../generic_iam_role | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_security_group.service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_vpc_security_group_egress_rule.egress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
+| [aws_vpc_security_group_ingress_rule.access_ingress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
+| [aws_vpc_security_group_ingress_rule.vpc_ingress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.ssm_permission](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_allow_major_version_upgrade"></a> [allow\_major\_version\_upgrade](#input\_allow\_major\_version\_upgrade) | Allow Major Version Upgrade for RDS Instance | `bool` | `false` | no |
+| <a name="input_allowed_cidrs"></a> [allowed\_cidrs](#input\_allowed\_cidrs) | Allowed Cidrs in the Database | <pre>list(object({<br/>    name        = string<br/>    ip          = string<br/>    description = string<br/>    port        = optional(string, null)<br/>  }))</pre> | `[]` | no |
+| <a name="input_apply_immediately"></a> [apply\_immediately](#input\_apply\_immediately) | Specifies whether any database modifications are applied immediately, or during the next maintenance window | `bool` | `false` | no |
+| <a name="input_backup_retention_period"></a> [backup\_retention\_period](#input\_backup\_retention\_period) | Number of Days to store Automated backup | `number` | `15` | no |
+| <a name="input_backup_window"></a> [backup\_window](#input\_backup\_window) | Time duration for backup | `string` | `"03:00-06:00"` | no |
+| <a name="input_ca_cert_identifier"></a> [ca\_cert\_identifier](#input\_ca\_cert\_identifier) | See Certificate Authority on RDS Page | `string` | `"rds-ca-rsa2048-g1"` | no |
+| <a name="input_cloudwatch_log_group_retention_in_days"></a> [cloudwatch\_log\_group\_retention\_in\_days](#input\_cloudwatch\_log\_group\_retention\_in\_days) | The number of days to retain CloudWatch logs for the DB instance | `number` | `7` | no |
+| <a name="input_cloudwatch_logs_names"></a> [cloudwatch\_logs\_names](#input\_cloudwatch\_logs\_names) | Name of log groups which logs to get | `list` | <pre>[<br/>  "audit",<br/>  "error",<br/>  "general"<br/>]</pre> | no |
+| <a name="input_create_cloudwatch_log_group"></a> [create\_cloudwatch\_log\_group](#input\_create\_cloudwatch\_log\_group) | Determines whether a CloudWatch log group is created for each enabled\_cloudwatch\_logs\_exports | `bool` | `false` | no |
+| <a name="input_create_monitoring_role"></a> [create\_monitoring\_role](#input\_create\_monitoring\_role) | Flag to create monitoring role | `bool` | `false` | no |
+| <a name="input_cron_schedules"></a> [cron\_schedules](#input\_cron\_schedules) | List of cron schedules to create | <pre>list(object({<br/>    name                = string<br/>    schedule_expression = string<br/>    action              = string<br/>    description         = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_db_identifier"></a> [db\_identifier](#input\_db\_identifier) | Name of Database Identifier | `string` | n/a | yes |
+| <a name="input_db_port"></a> [db\_port](#input\_db\_port) | Database Port to Use | `number` | `3306` | no |
+| <a name="input_db_storage_size"></a> [db\_storage\_size](#input\_db\_storage\_size) | Size of RDS storage in GB | `number` | `"50"` | no |
+| <a name="input_disable_rds_public_access"></a> [disable\_rds\_public\_access](#input\_disable\_rds\_public\_access) | Turn Off Public RDS Access | `bool` | `false` | no |
+| <a name="input_enable_multi_az"></a> [enable\_multi\_az](#input\_enable\_multi\_az) | Enable Multi-AZ Cluster | `bool` | `false` | no |
+| <a name="input_encrypt_db_storage"></a> [encrypt\_db\_storage](#input\_encrypt\_db\_storage) | Enable Storage Encryption | `bool` | `true` | no |
+| <a name="input_engine"></a> [engine](#input\_engine) | The database engine to use | `string` | `"mysql"` | no |
+| <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | Major engine verison of rds | `string` | `"8.0.23"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment to deploy the resources | `string` | `null` | no |
+| <a name="input_initial_db_name"></a> [initial\_db\_name](#input\_initial\_db\_name) | Name of the db created initially | `string` | `null` | no |
+| <a name="input_instance_class"></a> [instance\_class](#input\_instance\_class) | Instance type for the cluster eg. db.t2.large | `string` | n/a | yes |
+| <a name="input_iops"></a> [iops](#input\_iops) | IOPS to Provision | `number` | `null` | no |
+| <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Time at which maintainance should take place | `string` | `"Mon:00:00-Mon:03:00"` | no |
+| <a name="input_major_engine_version"></a> [major\_engine\_version](#input\_major\_engine\_version) | Major engine verison of rds | `string` | `"8.0"` | no |
+| <a name="input_manage_master_user_password"></a> [manage\_master\_user\_password](#input\_manage\_master\_user\_password) | Set to true to allow RDS to manage the master user password in Secrets Manager | `bool` | `true` | no |
+| <a name="input_monitoring_interval"></a> [monitoring\_interval](#input\_monitoring\_interval) | Interval of monitoring | `number` | `0` | no |
+| <a name="input_option_group_skip_destroy"></a> [option\_group\_skip\_destroy](#input\_option\_group\_skip\_destroy) | Skip Destroying Option Group | `bool` | `true` | no |
+| <a name="input_parameter_group_skip_destroy"></a> [parameter\_group\_skip\_destroy](#input\_parameter\_group\_skip\_destroy) | Skip Destroying Parameter Group | `bool` | `true` | no |
+| <a name="input_performance_insights_enabled"></a> [performance\_insights\_enabled](#input\_performance\_insights\_enabled) | Enable Performance Insights | `bool` | `false` | no |
+| <a name="input_performance_insights_retention_period"></a> [performance\_insights\_retention\_period](#input\_performance\_insights\_retention\_period) | Performance Insights Retention days | `number` | `0` | no |
+| <a name="input_rds_db_delete_protection"></a> [rds\_db\_delete\_protection](#input\_rds\_db\_delete\_protection) | Whether aws rds/aurora database should have delete protection enabled | `bool` | `true` | no |
+| <a name="input_rds_family"></a> [rds\_family](#input\_rds\_family) | RDS family like mysql, aurora with version | `string` | `"mysql8.0"` | no |
+| <a name="input_rds_subnets"></a> [rds\_subnets](#input\_rds\_subnets) | VPC Subnets to Deploy RDS In | `list(string)` | n/a | yes |
+| <a name="input_read_replica"></a> [read\_replica](#input\_read\_replica) | Enable Read Replicas for Database | `bool` | `false` | no |
+| <a name="input_region"></a> [region](#input\_region) | Region to deploy the resources | `string` | `"eu-west-2"` | no |
+| <a name="input_replicate_source_db"></a> [replicate\_source\_db](#input\_replicate\_source\_db) | Specifies that this resource is a Replicate database, and to use this value as the source database. This correlates to the identifier of another Amazon RDS Database to replicate | `string` | `null` | no |
+| <a name="input_scheduler_timezone"></a> [scheduler\_timezone](#input\_scheduler\_timezone) | Timezone for the scheduler | `string` | `"Europe/London"` | no |
+| <a name="input_snapshot_name"></a> [snapshot\_name](#input\_snapshot\_name) | Name of DB to be snapshot | `string` | `null` | no |
+| <a name="input_storage_type"></a> [storage\_type](#input\_storage\_type) | Storage Type | `string` | `null` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Expose Tags field | `map(any)` | `{}` | no |
+| <a name="input_username"></a> [username](#input\_username) | Username for the root account of db | `string` | `null` | no |
+| <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block) | VPC CIDR Block to Allow Connections to the Database | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID From VPC Module | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_db_identifier"></a> [db\_identifier](#output\_db\_identifier) | Identifier for the database |
+| <a name="output_db_instance_address"></a> [db\_instance\_address](#output\_db\_instance\_address) | value of the RDS instance address |
+| <a name="output_db_instance_master_user_secret_arn"></a> [db\_instance\_master\_user\_secret\_arn](#output\_db\_instance\_master\_user\_secret\_arn) | ARN of the master user secret in AWS Secrets Manager |
+| <a name="output_rds_security_group"></a> [rds\_security\_group](#output\_rds\_security\_group) | value of the RDS security group |
+<!-- END_TF_DOCS -->

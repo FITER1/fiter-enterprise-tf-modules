@@ -120,3 +120,4 @@ jobs:
           recursive: true
           recursive-path: infrastructure
           git-push: "true"
+          output-method: replace
