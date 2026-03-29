@@ -4,11 +4,12 @@ output "public_ip" {
 }
 
 output "instance_id" {
-  value = module.ec2.id
+  value       = module.ec2.id
+  description = "ID of the EC2 instance"
 }
 
 output "volume_ids" {
-  value = [for volume in var.additional_ebs_volumes : aws_ebs_volume.data[volume.name].id]
+  value       = [for volume in var.additional_ebs_volumes : aws_ebs_volume.data[volume.name].id]
   description = "List of EBS volume IDs attached to the instance"
 }
 
