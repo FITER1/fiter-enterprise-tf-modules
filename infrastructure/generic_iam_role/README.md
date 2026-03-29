@@ -19,27 +19,52 @@ This module creates a **generic AWS IAM Role** with associated policies.
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
 
 ## Usage
 To use this module in your Terraform environment, include it in your Terraform configuration with the necessary parameters. Below is an example of how to use this module:
 
 ```hcl
-module "eks_argocd_client" {
-  source          = "../"
-  policy_file     = "argocd_client_role.json"
-  customer        = "revving"
-  role_name       = "argocd_client_role"
-  environment     = "dev"
-  common_tags     = { "Owner" = "revving", "Environment" = "dev" }
-  assume_role_arn = "arn:aws:iam::12345678:role/example_name"
+# Generic IAM role with a trust policy and attached managed policy.
+# This example creates a role that an EC2 instance can assume,
+# with the SSM managed policy attached for Session Manager access.
+
+module "ec2_iam_role" {
+  source    = "../"
+  role_name = "example-customer-dev-ec2" # change to your role name; "-role" is appended automatically
+
+  common_tags = {
+    Name        = "example-customer-dev-ec2-role"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
+
+  # Trust policy — which principal can assume this role
+  principal_type        = "Service"
+  principal_identifiers = ["ec2.amazonaws.com"] # change to the AWS service or IAM ARN that needs to assume this role
+
+  # Attach existing managed policies by ARN
+  policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore", # allows Session Manager access
+  ]
+
+  # Optionally attach an inline policy (uncomment and provide a valid JSON policy document)
+  # create_policy = true
+  # role_policy   = jsonencode({
+  #   Version = "2012-10-17"
+  #   Statement = [{
+  #     Effect   = "Allow"
+  #     Action   = ["s3:GetObject"]
+  #     Resource = "arn:aws:s3:::example-bucket/*"
+  #   }]
+  # })
 }
 ```
 
