@@ -270,7 +270,7 @@ module "karpenter" {
 
   cluster_name                    = module.eks.cluster_name
   create_pod_identity_association = true
-  create_instance_profile         = false
+  create_instance_profile         = true
   create_access_entry             = true
   namespace                       = var.karpenter_namespace
   service_account                 = var.karpenter_service_account
