@@ -119,6 +119,8 @@ module "eks" {
 | <a name="input_eks_access_entries"></a> [eks\_access\_entries](#input\_eks\_access\_entries) | Map of EKS Access Entries | `map(any)` | `{}` | no |
 | <a name="input_enable_private_zone"></a> [enable\_private\_zone](#input\_enable\_private\_zone) | Enable Private Route53 Zone | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | (Required) Environment e.g Dev, Stg, Prod | `string` | n/a | yes |
+| <a name="input_karpenter_namespace"></a> [karpenter\_namespace](#input\_karpenter\_namespace) | Namespace for Pod Identity Mapping | `string` | `"karpenter"` | no |
+| <a name="input_karpenter_service_account"></a> [karpenter\_service\_account](#input\_karpenter\_service\_account) | Service Account for Pod Identity Mapping | `string` | `"karpenter"` | no |
 | <a name="input_kms_key_rotation_days"></a> [kms\_key\_rotation\_days](#input\_kms\_key\_rotation\_days) | Number of days to rotate the KMS key for EKS managed node group volume encryption | `number` | `365` | no |
 | <a name="input_node_groups_attributes"></a> [node\_groups\_attributes](#input\_node\_groups\_attributes) | Node Group Properties. Used to Provision EKS node groups | `map(any)` | n/a | yes |
 | <a name="input_node_security_group_additional_rules"></a> [node\_security\_group\_additional\_rules](#input\_node\_security\_group\_additional\_rules) | Additional Rules for Node Security Group | `map(any)` | `{}` | no |

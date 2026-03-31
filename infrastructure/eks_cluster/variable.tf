@@ -104,3 +104,15 @@ variable "kms_key_rotation_days" {
   description = "Number of days to rotate the KMS key for EKS managed node group volume encryption"
   default     = 365
 }
+
+variable "karpenter_namespace" {
+  type        = string
+  description = "Namespace for Pod Identity Mapping"
+  default     = "karpenter"
+}
+
+variable "karpenter_service_account" {
+  type        = string
+  description = "Service Account for Pod Identity Mapping"
+  default     = "karpenter"
+}
