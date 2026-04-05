@@ -1,7 +1,7 @@
 module "eks_log_bucket" {
   count   = var.enable_eks_log_bucket ? 1 : 0
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~>4.2.0"
+  version = "~> 5.11.0"
 
   bucket                   = local.eks_log_bucket
   acl                      = "private"
