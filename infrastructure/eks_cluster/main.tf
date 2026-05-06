@@ -273,6 +273,7 @@ module "karpenter" {
   create_instance_profile         = false
   create_access_entry             = true
   namespace                       = var.karpenter_namespace
+  enable_inline_policy            = true
   service_account                 = var.karpenter_service_account
   node_iam_role_additional_policies = merge({
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
