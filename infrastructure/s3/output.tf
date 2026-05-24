@@ -1,9 +1,40 @@
 output "s3_bucket_arn" {
-  value = module.s3_bucket.s3_bucket_arn
-
+  description = "The ARN of the S3 bucket."
+  value       = module.s3_bucket.s3_bucket_arn
 }
 
 output "s3_bucket_id" {
-  value = module.s3_bucket.s3_bucket_bucket_domain_name
+  description = "The name/id of the S3 bucket."
+  value       = module.s3_bucket.s3_bucket_id
+}
 
+output "s3_bucket_domain_name" {
+  description = "The bucket domain name."
+  value       = module.s3_bucket.s3_bucket_bucket_domain_name
+}
+
+output "iam_writer_user_name" {
+  description = "The IAM writer user name, when enabled."
+  value       = try(module.writer[0].name, null)
+}
+
+output "iam_writer_user_arn" {
+  description = "The IAM writer user ARN, when enabled."
+  value       = try(module.writer[0].arn, null)
+}
+
+output "iam_writer_access_key_id" {
+  description = "The IAM writer access key ID, when enabled."
+  value       = try(module.writer[0].access_key_id, null)
+  sensitive   = true
+}
+
+output "iam_writer_secret_arn" {
+  description = "The Secrets Manager secret ARN containing the IAM writer credentials, when enabled."
+  value       = try(aws_secretsmanager_secret.writer[0].arn, null)
+}
+
+output "iam_writer_secret_name" {
+  description = "The Secrets Manager secret name containing the IAM writer credentials, when enabled."
+  value       = try(aws_secretsmanager_secret.writer[0].name, null)
 }
