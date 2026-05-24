@@ -134,7 +134,7 @@ variable "lambda_environment_variables" {
 
 variable "lambda_source_path" {
   type        = string
-  description = "Optional override for the Lambda source directory. When empty, the module's bundled lambdas/$${var.engine}/ is used. Set to an absolute or path.root-relative path to point at consumer-supplied source."
+  description = "Optional override for the Lambda source directory, resolved relative to the consumer workspace root (path.root). When empty, the module's bundled lambdas/$${var.engine}/ is used. Example: \"lambdas/mysql\" points at <workspace>/lambdas/mysql."
   default     = ""
 }
 
