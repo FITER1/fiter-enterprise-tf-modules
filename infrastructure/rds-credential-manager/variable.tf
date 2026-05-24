@@ -126,6 +126,18 @@ variable "function_code_path" {
   default     = "lambdas"
 }
 
+variable "lambda_environment_variables" {
+  type        = map(string)
+  description = "Extra environment variables merged into the Lambda's environment block. Override module-defaults by setting the same key here."
+  default     = {}
+}
+
+variable "lambda_source_path" {
+  type        = string
+  description = "Optional override for the Lambda source directory. When empty, the module's bundled lambdas/$${var.engine}/ is used. Set to an absolute or path.root-relative path to point at consumer-supplied source."
+  default     = ""
+}
+
 variable "enable_secretmanager_vpc_endpoint" {
   type        = bool
   description = "Enable VPC Endpoint for Secrets Manager"
