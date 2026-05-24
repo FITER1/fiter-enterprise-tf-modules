@@ -48,16 +48,13 @@ resource "aws_iam_policy" "writer" {
 module "writer" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-user"
   version = "~> 6.6"
-  count   = var.enable_iam_writer ? 1 : 0
 
-  create               = true
+  create               = var.enable_iam_writer
   name                 = local.iam_user_name
   create_login_profile = false
   create_access_key    = true
-  policies = {
-    s3_writer = aws_iam_policy.writer[0].arn
-  }
-  tags = merge(var.tags, var.iam_user_tags)
+  policies             = var.enable_iam_writer ? { s3_writer = aws_iam_policy.writer[0].arn } : {}
+  tags                 = merge(var.tags, var.iam_user_tags)
 }
 
 resource "aws_secretsmanager_secret" "writer" {
@@ -72,7 +69,7 @@ resource "aws_secretsmanager_secret_version" "writer" {
   count     = var.enable_iam_writer ? 1 : 0
   secret_id = aws_secretsmanager_secret.writer[0].id
   secret_string = jsonencode({
-    s3_access_key = module.writer[0].access_key_id
-    s3_secret_key = module.writer[0].access_key_secret
+    s3_access_key = module.writer.access_key_id
+    s3_secret_key = module.writer.access_key_secret
   })
 }

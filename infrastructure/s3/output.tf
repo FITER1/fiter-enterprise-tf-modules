@@ -15,17 +15,17 @@ output "s3_bucket_domain_name" {
 
 output "iam_writer_user_name" {
   description = "The IAM writer user name, when enabled."
-  value       = try(module.writer[0].name, null)
+  value       = module.writer.name
 }
 
 output "iam_writer_user_arn" {
   description = "The IAM writer user ARN, when enabled."
-  value       = try(module.writer[0].arn, null)
+  value       = module.writer.arn
 }
 
 output "iam_writer_access_key_id" {
   description = "The IAM writer access key ID, when enabled."
-  value       = try(module.writer[0].access_key_id, null)
+  value       = module.writer.access_key_id
   sensitive   = true
 }
 
