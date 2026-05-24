@@ -142,7 +142,7 @@ module "credential_manager" {
 | <a name="input_function_code_path"></a> [function\_code\_path](#input\_function\_code\_path) | Path to the Lambda function code | `string` | `"lambdas"` | no |
 | <a name="input_function_source"></a> [function\_source](#input\_function\_source) | The source type for the Lambda function (zip or image) | `string` | n/a | yes |
 | <a name="input_lambda_environment_variables"></a> [lambda\_environment\_variables](#input\_lambda\_environment\_variables) | Extra environment variables merged into the Lambda's environment block. Override module-defaults by setting the same key here. | `map(string)` | `{}` | no |
-| <a name="input_lambda_source_path"></a> [lambda\_source\_path](#input\_lambda\_source\_path) | Optional override for the Lambda source directory. When empty, the module's bundled lambdas/${var.engine}/ is used. Set to an absolute or path.root-relative path to point at consumer-supplied source. | `string` | `""` | no |
+| <a name="input_lambda_source_path"></a> [lambda\_source\_path](#input\_lambda\_source\_path) | Optional override for the Lambda source directory, resolved relative to the consumer workspace root (path.root). When empty, the module's bundled lambdas/${var.engine}/ is used. Example: "lambdas/mysql" points at <workspace>/lambdas/mysql. | `string` | `""` | no |
 | <a name="input_name"></a> [name](#input\_name) | Name of the resource | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | n/a | yes |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | List of security group IDs to associate with the RDS cluster | `list(string)` | n/a | yes |
