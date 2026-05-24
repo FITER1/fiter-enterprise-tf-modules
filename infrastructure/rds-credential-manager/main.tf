@@ -29,14 +29,17 @@ module "credential_manager" {
   attach_network_policy  = true
   timeout                = var.timeout
 
-  environment_variables = {
-    ADMIN_SECRET_NAME = var.admin_secret_arn
-    DB_HOST           = var.database_host
-    ADMIN_DB_NAME     = var.database_admin_db
-    DB_IDENTIFIER     = var.database_identifier
-    DB_PORT           = var.database_port
-    SECRET_PATH       = local.secret_path
-  }
+  environment_variables = merge(
+    {
+      ADMIN_SECRET_NAME = var.admin_secret_arn
+      DB_HOST           = var.database_host
+      ADMIN_DB_NAME     = var.database_admin_db
+      DB_IDENTIFIER     = var.database_identifier
+      DB_PORT           = var.database_port
+      SECRET_PATH       = local.secret_path
+    },
+    var.lambda_environment_variables
+  )
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.credential_manager_lambda.json

@@ -126,6 +126,18 @@ variable "function_code_path" {
   default     = "lambdas"
 }
 
+variable "lambda_environment_variables" {
+  type        = map(string)
+  description = "Extra environment variables merged into the Lambda's environment block. Override module-defaults by setting the same key here."
+  default     = {}
+}
+
+variable "lambda_source_path" {
+  type        = string
+  description = "Optional override for the Lambda source directory, resolved relative to the consumer workspace root (path.root). When empty, the module's bundled lambdas/$${var.engine}/ is used. Example: \"lambdas/mysql\" points at <workspace>/lambdas/mysql."
+  default     = ""
+}
+
 variable "enable_secretmanager_vpc_endpoint" {
   type        = bool
   description = "Enable VPC Endpoint for Secrets Manager"
