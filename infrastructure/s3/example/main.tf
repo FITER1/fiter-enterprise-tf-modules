@@ -16,3 +16,20 @@ module "app_assets" {
   # enable_versioning = true           # default; set to false if versioning is not needed
   # force_destroy     = true           # default; set to false to prevent accidental deletion in production
 }
+
+module "app_assets_with_writer" {
+  source = "../"
+
+  bucket_name       = "example-customer-dev-app-assets-writer"
+  create_bucket     = true
+  enable_iam_writer = true
+  iam_user_tags = {
+    Purpose = "upload"
+  }
+
+  tags = {
+    Name        = "example-customer-dev-app-assets-writer"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
+}
