@@ -79,7 +79,7 @@ resource "aws_iam_policy" "terraform_policy" {
           "kms:*",
           "dynamodb:*",
           "apprunner:*",
-          "ecr-public:GetAuthorizationToken",
+          "ecr-public:*",
           "eks:*",
           "kms:*",
           "sts:GetServiceBearerToken",
