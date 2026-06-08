@@ -32,6 +32,10 @@ module "vpc" {
   customer    = "example-customer"
   vpc_cidr    = "10.0.0.0/16"
   common_tags = { Name = "example-customer-dev", Environment = "dev" }
+
+  # Secrets Manager interface endpoint — lets the in-VPC credential-manager Lambda reach Secrets Manager
+  enable_network_endpoints = true
+  vpc_interface_endpoints  = ["secretsmanager"]
 }
 
 module "rds" {
@@ -69,8 +73,6 @@ module "credential_manager" {
   engine = "postgres"
 
   # Networking — Lambda runs inside the VPC to reach the RDS instance
-  vpc_id             = module.vpc.vpc_id
-  vpc_cidr           = module.vpc.vpc_cidr_block
   subnets            = module.vpc.private_subnets
   security_group_ids = [module.rds.rds_security_group]
 
@@ -104,6 +106,10 @@ module "credential_manager" {
     Environment = "dev"
     ManagedBy   = "terraform"
   }
+
+  # Ensure the Secrets Manager endpoint (created in the vpc module) exists before the
+  # Lambda is invoked, otherwise the in-VPC invocation can't reach Secrets Manager.
+  depends_on = [module.vpc]
 }
 ```
 
@@ -112,7 +118,6 @@ module "credential_manager" {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_credential_manager"></a> [credential\_manager](#module\_credential\_manager) | terraform-aws-modules/lambda/aws | ~> 8.0 |
-| <a name="module_endpoints"></a> [endpoints](#module\_endpoints) | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | ~> 6.0 |
 | <a name="module_pymysql_layer"></a> [pymysql\_layer](#module\_pymysql\_layer) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 
 ## Resources
@@ -136,7 +141,6 @@ module "credential_manager" {
 | <a name="input_db_service_users"></a> [db\_service\_users](#input\_db\_service\_users) | service user to create for application | <pre>list(object({<br/>    user        = string<br/>    access_type = string<br/>    db_owner    = string<br/>    databases   = list(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_docker_image"></a> [docker\_image](#input\_docker\_image) | Docker image to use for the Lambda function | `string` | `null` | no |
 | <a name="input_enable_credential_manager"></a> [enable\_credential\_manager](#input\_enable\_credential\_manager) | Enable Credential Manager | `bool` | `true` | no |
-| <a name="input_enable_secretmanager_vpc_endpoint"></a> [enable\_secretmanager\_vpc\_endpoint](#input\_enable\_secretmanager\_vpc\_endpoint) | Enable VPC Endpoint for Secrets Manager | `bool` | `false` | no |
 | <a name="input_engine"></a> [engine](#input\_engine) | The database engine to use | `string` | `"postgres"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name | `string` | n/a | yes |
 | <a name="input_function_code_path"></a> [function\_code\_path](#input\_function\_code\_path) | Path to the Lambda function code | `string` | `"lambdas"` | no |
@@ -149,8 +153,6 @@ module "credential_manager" {
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to use for the RDS cluster | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the resources | `map(any)` | `{}` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Timeout for the Lambda function | `number` | `120` | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block of the VPC | `string` | n/a | yes |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID where the RDS instance will be deployed | `string` | n/a | yes |
 
 ## Outputs
 
