@@ -9,6 +9,10 @@ module "vpc" {
   customer    = "example-customer"
   vpc_cidr    = "10.0.0.0/16"
   common_tags = { Name = "example-customer-dev", Environment = "dev" }
+
+  # Secrets Manager interface endpoint — lets the in-VPC credential-manager Lambda reach Secrets Manager
+  enable_network_endpoints = true
+  vpc_interface_endpoints  = ["secretsmanager"]
 }
 
 module "rds" {
@@ -46,8 +50,6 @@ module "credential_manager" {
   engine = "postgres"
 
   # Networking — Lambda runs inside the VPC to reach the RDS instance
-  vpc_id             = module.vpc.vpc_id
-  vpc_cidr           = module.vpc.vpc_cidr_block
   subnets            = module.vpc.private_subnets
   security_group_ids = [module.rds.rds_security_group]
 
@@ -81,4 +83,8 @@ module "credential_manager" {
     Environment = "dev"
     ManagedBy   = "terraform"
   }
+
+  # Ensure the Secrets Manager endpoint (created in the vpc module) exists before the
+  # Lambda is invoked, otherwise the in-VPC invocation can't reach Secrets Manager.
+  depends_on = [module.vpc]
 }

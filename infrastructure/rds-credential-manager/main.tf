@@ -107,7 +107,6 @@ resource "aws_lambda_invocation" "postgres_init" {
     "DB_OWNER"    = ""
     "ACCESS_TYPE" = "readonly"
   })
-  depends_on = [module.endpoints]
 }
 
 # Invoke to create users
@@ -126,35 +125,6 @@ resource "aws_lambda_invocation" "db_service" {
   })
 
   depends_on = [
-    module.endpoints,
     aws_lambda_invocation.postgres_init
   ]
-}
-
-module "endpoints" {
-  count   = var.enable_secretmanager_vpc_endpoint ? 1 : 0
-  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "~> 6.0"
-
-  vpc_id                = var.vpc_id
-  create_security_group = true
-
-  security_group_name_prefix = "${var.name}-vpc-endpoints-"
-  security_group_description = "VPC endpoint security group"
-  security_group_rules = {
-    ingress_https = {
-      description = "HTTPS from VPC"
-      cidr_blocks = [var.vpc_cidr]
-    }
-  }
-  subnet_ids = var.subnets
-
-  endpoints = {
-    secretsmanager = {
-      # interface endpoint
-      service             = "secretsmanager"
-      private_dns_enabled = true
-      tags                = { Name = "secretsmanager-vpc-endpoint" }
-    },
-  }
 }

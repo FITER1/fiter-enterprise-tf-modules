@@ -138,22 +138,6 @@ variable "lambda_source_path" {
   default     = ""
 }
 
-variable "enable_secretmanager_vpc_endpoint" {
-  type        = bool
-  description = "Enable VPC Endpoint for Secrets Manager"
-  default     = false
-}
-
-variable "vpc_id" {
-  type        = string
-  description = "VPC ID where the RDS instance will be deployed"
-}
-
-variable "vpc_cidr" {
-  type        = string
-  description = "CIDR block of the VPC"
-}
-
 variable "database_port" {
   type        = number
   description = "Port number for the database"
