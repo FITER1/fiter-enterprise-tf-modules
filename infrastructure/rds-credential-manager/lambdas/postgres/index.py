@@ -50,14 +50,14 @@ def create_secret(client, secret_name, username, db_owner):
                         'Value': 'Terraform'
                      }],
             )
-            logger.info(f"Secret {secret_name} created in AWS Secrets Manager.")
+            logger.info("Secret created in AWS Secrets Manager.")
         except ClientError as error:
             if error.response['Error']['Code'] == 'ResourceExistsException':
                 existing_secret = get_secret(client, secret_name)
                 password = existing_secret["password"]
-                logger.info(f"Secret {secret_name} already exists. Using existing password.")
+                logger.info("Secret already exists. Using existing password.")
             else:
-                logger.error(f"Error creating secret {secret_name}: {error}")
+                logger.error(f"Error creating secret: {error}")
                 raise error
     else:
         logger.info("[LOCAL MODE] Secret not stored in AWS.")
@@ -65,24 +65,24 @@ def create_secret(client, secret_name, username, db_owner):
     return password
 
 def get_secret(client, secret_name):
-    logger.info(f"attempting to get secret: {secret_name}")
+    logger.info("Attempting to get secret.")
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
         secret = get_secret_value_response['SecretString']
         return json.loads(secret)
     except ClientError as e:
-        logger.error(f"Error retrieving secret {secret_name}: {e}")
+        logger.error(f"Error retrieving secret: {e}")
         raise e
 
 
 def delete_secret(client, secret_name):
-    logger.info(f"Attempting to delete secret: {secret_name}")
+    logger.info("Attempting to delete secret.")
     try:
         client.delete_secret(SecretId=secret_name, ForceDeleteWithoutRecovery=True)
-        logger.info(f"Secret {secret_name} deleted successfully.")
+        logger.info("Secret deleted successfully.")
         return True
     except ClientError as e:
-        logger.error(f"Error deleting secret {secret_name}: {e}")
+        logger.error(f"Error deleting secret: {e}")
         raise e
 
 def db_connection_manager(db_params, database, query):
