@@ -1,0 +1,110 @@
+projects:
+  kitchensink-cluster:
+    namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    description: kitchensink-cluster Deployment Project
+    sourceRepos:
+    - '*'
+    destinations:
+      - server: https://kubernetes.default.svc
+        namespace: '*'
+    namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+    - group: ''
+      kind: NetworkPolicy
+    namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  team-payments:
+    namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    description: Payments team deployment project
+    sourceRepos:
+    - '*'
+    destinations:
+      - server: https://kubernetes.default.svc
+        namespace: '*'
+    namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+    - group: ''
+      kind: NetworkPolicy
+    namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+applicationsets:
+  bootstrap-addons:
+    namespace: argocd
+    finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    goTemplate: true
+    goTemplateOptions: ["missingkey=error"]
+    generators:
+      - clusters: {}
+    template:
+      metadata:
+        name: bootstrap-addons
+      spec:
+        project: default
+        source:
+          repoURL: https://github.com/example-org/argocd-apps.git
+          targetRevision: main
+          path: bootstrap/addons
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: argocd
+        syncPolicy:   
+          automated:
+            prune: false
+            selfHeal: false
+        info:
+          - name: url
+            value: https://argoproj.github.io/
+    syncPolicy:
+      # Set Application finalizer
+      preserveResourcesOnDeletion: false
+
+  platform-apps:
+    namespace: argocd
+    finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    goTemplate: true
+    goTemplateOptions: ["missingkey=error"]
+    generators:
+      - clusters: {}
+    template:
+      metadata:
+        name: platform-apps
+      spec:
+        project: default
+        source:
+          repoURL: https://github.com/example-org/argocd-apps.git
+          targetRevision: main
+          path: platform
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: argocd
+        syncPolicy:   
+          automated:
+            prune: false
+            selfHeal: false
+        info:
+          - name: url
+            value: https://argoproj.github.io/
+    syncPolicy:
+      # Set Application finalizer
+      preserveResourcesOnDeletion: false
