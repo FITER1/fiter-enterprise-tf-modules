@@ -40,7 +40,7 @@ resource "random_shuffle" "subnet" {
 
 module "key_pair" {
   source             = "terraform-aws-modules/key-pair/aws"
-  version            = "2.1.1"
+  version            = "3.0.0"
   create             = var.create_key_pair
   key_name           = local.key_name
   create_private_key = true
