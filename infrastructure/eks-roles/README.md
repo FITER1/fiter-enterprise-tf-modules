@@ -100,7 +100,7 @@ module "eks_iam_roles" {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_eks_iam_role"></a> [eks\_iam\_role](#module\_eks\_iam\_role) | terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts | ~> 6.0 |
-| <a name="module_eks_log_bucket"></a> [eks\_log\_bucket](#module\_eks\_log\_bucket) | terraform-aws-modules/s3-bucket/aws | ~>4.2.0 |
+| <a name="module_eks_log_bucket"></a> [eks\_log\_bucket](#module\_eks\_log\_bucket) | terraform-aws-modules/s3-bucket/aws | ~> 4.11.0 |
 
 ## Resources
 
