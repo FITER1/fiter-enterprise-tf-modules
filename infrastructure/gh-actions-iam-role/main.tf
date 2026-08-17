@@ -69,6 +69,7 @@ resource "aws_iam_policy" "terraform_policy" {
           "cloudwatch:*",
           "cloudfront:*",
           "route53:*",
+          "wafv2:*",
           "ecr:*",
           "logs:*",
           "ecs:*",
