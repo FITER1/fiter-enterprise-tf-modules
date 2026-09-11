@@ -43,6 +43,7 @@ module "eks" {
   subnet_ids         = var.subnets
   vpc_id             = var.vpc_id
   enable_irsa        = true
+  enabled_log_types  = var.enabled_log_types
 
   addons = {
     coredns = {
