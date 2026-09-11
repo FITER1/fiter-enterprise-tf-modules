@@ -14,6 +14,12 @@ variable "cluster_version" {
   default     = "1.25"
 }
 
+variable "enabled_log_types" {
+  description = "EKS control-plane log types to enable"
+  type        = list(string)
+  default     = ["audit", "api", "authenticator"]
+}
+
 variable "common_tags" {
   type        = map(any)
   description = "(Required) Resource Tag"
