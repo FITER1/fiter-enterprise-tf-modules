@@ -118,6 +118,7 @@ module "eks" {
 | <a name="input_disable_api_termination"></a> [disable\_api\_termination](#input\_disable\_api\_termination) | If true, enables termination protection on the EKS cluster EC2 instances | `bool` | `true` | no |
 | <a name="input_eks_access_entries"></a> [eks\_access\_entries](#input\_eks\_access\_entries) | Map of EKS Access Entries | `map(any)` | `{}` | no |
 | <a name="input_enable_private_zone"></a> [enable\_private\_zone](#input\_enable\_private\_zone) | Enable Private Route53 Zone | `bool` | `false` | no |
+| <a name="input_enabled_log_types"></a> [enabled\_log\_types](#input\_enabled\_log\_types) | EKS control-plane log types to enable | `list(string)` | <pre>[<br/>  "audit",<br/>  "api",<br/>  "authenticator"<br/>]</pre> | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | (Required) Environment e.g Dev, Stg, Prod | `string` | n/a | yes |
 | <a name="input_karpenter_namespace"></a> [karpenter\_namespace](#input\_karpenter\_namespace) | Namespace for Pod Identity Mapping | `string` | `"karpenter"` | no |
 | <a name="input_karpenter_service_account"></a> [karpenter\_service\_account](#input\_karpenter\_service\_account) | Service Account for Pod Identity Mapping | `string` | `"karpenter"` | no |
