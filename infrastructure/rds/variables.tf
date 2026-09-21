@@ -142,3 +142,40 @@ variable "deletion_protection" {
   type        = bool
   default     = false
 }
+
+variable "multi_az" {
+  description = "Specifies if the RDS instance is multi-AZ"
+  type        = bool
+  default     = false
+}
+
+variable "performance_insights_enabled" {
+  description = "Specifies whether Performance Insights are enabled"
+  type        = bool
+  default     = false
+}
+
+variable "performance_insights_retention_period" {
+  description = "Amount of time in days to retain Performance Insights data. Only used when performance_insights_enabled is true. Null defers to the provider/AWS default (7 days)."
+  type        = number
+  default     = null
+}
+
+variable "performance_insights_kms_key_id" {
+  description = "ARN of the KMS key to encrypt Performance Insights data. Only used when performance_insights_enabled is true. Null defers to the provider/AWS default (the aws/rds managed key)."
+  type        = string
+  default     = null
+}
+
+variable "additional_ingress_rules" {
+  description = "Additional ingress rules to add to the RDS security group, on top of the default VPC CIDR rules on 3306/443."
+  type = list(object({
+    description     = optional(string, "")
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string), [])
+    security_groups = optional(list(string), [])
+  }))
+  default = []
+}
