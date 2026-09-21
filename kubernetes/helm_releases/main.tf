@@ -163,26 +163,8 @@ resource "kubernetes_secret" "external_secret_irsa" {
   }
 }
 
-resource "kubectl_manifest" "secretmanagerstore" {
-  count = var.external_secret_enabled && var.external_aws_secret_manager_store_enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/manifests/secret-store.yaml",{
-    aws_region = data.aws_region.current.name
-    namespace = var.external_secrets_namespace
-  })
-  depends_on = [helm_release.this]
-}
 
 
-resource "kubectl_manifest" "parameterstore" {
-  count = var.external_secret_enabled && var.external_aws_secret_parameter_store_enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/manifests/parameter-store.yaml",{
-    aws_region = data.aws_region.current.name
-    namespace = var.external_secrets_namespace
-  })
-  depends_on = [
-    helm_release.this
-  ]
-}
 
 data "kubernetes_resource" "ingress" {
   count = var.nginx_ingress_enabled ? 1 : 0
