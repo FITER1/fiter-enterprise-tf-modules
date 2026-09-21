@@ -285,3 +285,9 @@ variable "blackbox_targets" {
   default = {}
   type = map(any)
 }
+
+variable "additional_log_dashboards" {
+  description = "Additional Grafana dashboard JSON documents to merge into the log-dashboard ConfigMap, keyed by data key (e.g. filename)"
+  default     = {}
+  type        = map(string)
+}

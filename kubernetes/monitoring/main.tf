@@ -131,9 +131,12 @@ resource "kubernetes_config_map" "log_dashboard" {
       "grafana_folder" = "App_Dashboard"
     }
   }
-  data = {
-    "kubernetes_logs.json" = file("${path.module}/dashboards/kube-logs.json")
-  }
+  data = merge(
+    {
+      "kubernetes_logs.json" = file("${path.module}/dashboards/kube-logs.json")
+    },
+    var.additional_log_dashboards
+  )
   depends_on = [helm_release.prometheus_operator]
 }
 
