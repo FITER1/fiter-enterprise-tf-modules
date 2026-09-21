@@ -26,6 +26,10 @@ resource "helm_release" "karpenter" {
     CLUSTER_ENDPOINT       = var.cluster_endpoint,
     INSTANCE_PROFILE_NAME  = var.instance_profile_name
   })]
+
+  lifecycle {
+    ignore_changes = [repository_password]
+  }
 }
 
 resource "time_sleep" "wait" {
