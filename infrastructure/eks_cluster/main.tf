@@ -56,23 +56,35 @@ module "eks" {
   enable_irsa     = true
 
   cluster_addons = {
-    coredns = {
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-    }
-    kube-proxy = {
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-    }
-    vpc-cni = {
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-    }
-    aws-ebs-csi-driver = {
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-      service_account_role_arn    = module.aws_ebs_csi_iam_service_account.iam_role_arn
-    }
+    coredns = merge(
+      {
+        resolve_conflicts_on_create = "OVERWRITE"
+        resolve_conflicts_on_update = "OVERWRITE"
+      },
+      lookup(var.cluster_addon_versions, "coredns", "") != "" ? { addon_version = var.cluster_addon_versions["coredns"] } : {}
+    )
+    kube-proxy = merge(
+      {
+        resolve_conflicts_on_create = "OVERWRITE"
+        resolve_conflicts_on_update = "OVERWRITE"
+      },
+      lookup(var.cluster_addon_versions, "kube-proxy", "") != "" ? { addon_version = var.cluster_addon_versions["kube-proxy"] } : {}
+    )
+    vpc-cni = merge(
+      {
+        resolve_conflicts_on_create = "OVERWRITE"
+        resolve_conflicts_on_update = "OVERWRITE"
+      },
+      lookup(var.cluster_addon_versions, "vpc-cni", "") != "" ? { addon_version = var.cluster_addon_versions["vpc-cni"] } : {}
+    )
+    aws-ebs-csi-driver = merge(
+      {
+        resolve_conflicts_on_create = "OVERWRITE"
+        resolve_conflicts_on_update = "OVERWRITE"
+        service_account_role_arn    = module.aws_ebs_csi_iam_service_account.iam_role_arn
+      },
+      lookup(var.cluster_addon_versions, "aws-ebs-csi-driver", "") != "" ? { addon_version = var.cluster_addon_versions["aws-ebs-csi-driver"] } : {}
+    )
   }
 
   kms_key_administrators             = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
@@ -307,6 +319,8 @@ data "external" "os" {
 }
 
 resource "null_resource" "custom" {
+  count = var.enable_prefix_delegation_hook ? 1 : 0
+
   triggers = {
     build_number = var.cluster_version
   }

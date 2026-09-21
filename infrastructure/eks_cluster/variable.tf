@@ -93,3 +93,15 @@ variable "helm_deploy" {
   type        = bool
   default     = false
 }
+
+variable "cluster_addon_versions" {
+  description = "Map of EKS addon name (coredns, kube-proxy, vpc-cni, aws-ebs-csi-driver) to a pinned addon_version. When a key is present its value is used verbatim as the addon's version instead of resolving the latest version via the aws_eks_addon_version data source. Keys omitted keep default (latest-resolved) behavior."
+  type        = map(string)
+  default     = {}
+}
+
+variable "enable_prefix_delegation_hook" {
+  description = "Whether to run the null_resource.custom local-exec hook that downloads kubectl and sets ENABLE_PREFIX_DELEGATION=true on the aws-node daemonset. Defaults to true (current behavior). Set to false when prefix delegation is already enabled another way (e.g. already true on the live daemonset) to skip the hook."
+  type        = bool
+  default     = true
+}
