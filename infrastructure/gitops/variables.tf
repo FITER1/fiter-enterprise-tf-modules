@@ -193,3 +193,16 @@ variable "crossplane_enabled" {
   description = "Enable Crossplane related Configuration"
   default     = false
 }
+
+variable "argocd_resources" {
+  type = object({
+    controller      = optional(object({ requests = optional(map(string)), limits = optional(map(string)) }))
+    repo_server     = optional(object({ requests = optional(map(string)), limits = optional(map(string)) }))
+    server          = optional(object({ requests = optional(map(string)), limits = optional(map(string)) }))
+    application_set = optional(object({ requests = optional(map(string)), limits = optional(map(string)) }))
+    redis           = optional(object({ requests = optional(map(string)), limits = optional(map(string)) }))
+  })
+  description = "Resource requests/limits per ArgoCD component. Unset components render no resources block."
+  default     = {}
+  nullable    = false
+}

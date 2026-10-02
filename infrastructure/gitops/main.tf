@@ -57,6 +57,23 @@ locals {
     admin_users                 = local.admin_users
     crossplane_enabled          = var.crossplane_enabled
   }
+
+  argocd_resource_components = {
+    controller     = var.argocd_resources.controller
+    repoServer     = var.argocd_resources.repo_server
+    server         = var.argocd_resources.server
+    applicationSet = var.argocd_resources.application_set
+    redis          = var.argocd_resources.redis
+  }
+
+  argocd_resources_values = {
+    for chart_key, res in local.argocd_resource_components : chart_key => {
+      resources = merge(
+        res.requests != null ? { requests = res.requests } : {},
+        res.limits != null ? { limits = res.limits } : {},
+      )
+    } if res != null
+  }
 }
 
 resource "helm_release" "argocd" {
@@ -69,9 +86,10 @@ resource "helm_release" "argocd" {
   wait             = false
   wait_for_jobs    = false
 
-  values = [
-    templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)
-  ]
+  values = concat(
+    [templatefile("${path.module}/files/base-config.yaml", local.eks_helm_map)],
+    length(local.argocd_resources_values) > 0 ? [yamlencode(local.argocd_resources_values)] : []
+  )
 
   set = var.set_values_argocd_helm
 }
