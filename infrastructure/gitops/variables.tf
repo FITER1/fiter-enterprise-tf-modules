@@ -204,4 +204,5 @@ variable "argocd_resources" {
   })
   description = "Resource requests/limits per ArgoCD component. Unset components render no resources block."
   default     = {}
+  nullable    = false
 }
