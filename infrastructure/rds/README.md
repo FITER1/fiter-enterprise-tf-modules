@@ -172,6 +172,7 @@ module "rds" {
 | <a name="input_engine"></a> [engine](#input\_engine) | The database engine to use | `string` | `"mysql"` | no |
 | <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | Major engine verison of rds | `string` | `"8.0.23"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment to deploy the resources | `string` | `null` | no |
+| <a name="input_final_snapshot_identifier_prefix"></a> [final\_snapshot\_identifier\_prefix](#input\_final\_snapshot\_identifier\_prefix) | Prefix for the final snapshot identifier (upstream appends <identifier>-<random hex>) | `string` | `"final"` | no |
 | <a name="input_initial_db_name"></a> [initial\_db\_name](#input\_initial\_db\_name) | Name of the db created initially | `string` | `null` | no |
 | <a name="input_instance_class"></a> [instance\_class](#input\_instance\_class) | Instance type for the cluster eg. db.t2.large | `string` | n/a | yes |
 | <a name="input_iops"></a> [iops](#input\_iops) | IOPS to Provision | `number` | `null` | no |
@@ -190,6 +191,7 @@ module "rds" {
 | <a name="input_region"></a> [region](#input\_region) | Region to deploy the resources | `string` | `"eu-west-2"` | no |
 | <a name="input_replicate_source_db"></a> [replicate\_source\_db](#input\_replicate\_source\_db) | Specifies that this resource is a Replicate database, and to use this value as the source database. This correlates to the identifier of another Amazon RDS Database to replicate | `string` | `null` | no |
 | <a name="input_scheduler_timezone"></a> [scheduler\_timezone](#input\_scheduler\_timezone) | Timezone for the scheduler | `string` | `"Europe/London"` | no |
+| <a name="input_skip_final_snapshot"></a> [skip\_final\_snapshot](#input\_skip\_final\_snapshot) | Skip the final DB snapshot on destroy | `bool` | `true` | no |
 | <a name="input_snapshot_name"></a> [snapshot\_name](#input\_snapshot\_name) | Name of DB to be snapshot | `string` | `null` | no |
 | <a name="input_storage_type"></a> [storage\_type](#input\_storage\_type) | Storage Type | `string` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Expose Tags field | `map(any)` | `{}` | no |
