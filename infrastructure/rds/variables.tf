@@ -266,6 +266,18 @@ variable "allow_major_version_upgrade" {
   default     = false
 }
 
+variable "skip_final_snapshot" {
+  description = "Skip the final DB snapshot on destroy"
+  type        = bool
+  default     = true
+}
+
+variable "final_snapshot_identifier_prefix" {
+  description = "Prefix for the final snapshot identifier (upstream appends <identifier>-<random hex>)"
+  type        = string
+  default     = "final"
+}
+
 variable "option_group_skip_destroy" {
   type        = bool
   description = "Skip Destroying Option Group"

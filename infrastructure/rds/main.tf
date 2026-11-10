@@ -97,7 +97,8 @@ module "db" {
   major_engine_version      = var.major_engine_version
   option_group_skip_destroy = var.option_group_skip_destroy
 
-  skip_final_snapshot = true
+  skip_final_snapshot              = var.skip_final_snapshot
+  final_snapshot_identifier_prefix = var.final_snapshot_identifier_prefix
   # Database Deletion Protection change on production
   deletion_protection = var.rds_db_delete_protection
 
